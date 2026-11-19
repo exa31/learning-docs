@@ -6,7 +6,7 @@ export default defineConfig({
   integrations: [
     starlight({
       title: 'Dev Cheatsheets 📖',
-      description: 'Catatan & cheatsheet sintaks praktis pribadi',
+      description: 'Catatan & cheatsheet sintaks praktis pribadi lintas tech-stack',
       sidebar: [
         {
           label: '🟡 JavaScript',
@@ -15,6 +15,22 @@ export default defineConfig({
         {
           label: '🔷 TypeScript',
           items: [{ autogenerate: { directory: 'typescript' } }],
+        },
+        {
+          label: '🐍 Python',
+          items: [{ autogenerate: { directory: 'python' } }],
+        },
+        {
+          label: '🐹 Golang',
+          items: [{ autogenerate: { directory: 'golang' } }],
+        },
+        {
+          label: '🦀 Rust',
+          items: [{ autogenerate: { directory: 'rust' } }],
+        },
+        {
+          label: '🎯 Dart (Flutter)',
+          items: [{ autogenerate: { directory: 'dart' } }],
         },
         {
           label: '🟣 Kotlin & Compose',
