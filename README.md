@@ -1,6 +1,6 @@
 # 📚 Personal Dev Docs & Cheatsheets (Astro Starlight)
 
-Buku saku sintaks dan dokumentasi teknis pribadi harian berbasis **Astro Starlight** (`@astrojs/starlight: ^0.43.1`). Didesain khusus untuk mencari dan mengingat kembali konsep bahasa pemrograman (JavaScript, TypeScript, Python, Golang, Rust, Dart, Kotlin, Terraform) secara instan, to-the-point, dan aplikatif.
+Buku saku sintaks dan dokumentasi teknis pribadi harian berbasis **Astro Starlight** (`@astrojs/starlight: ^0.43.1`). Didesain khusus untuk mencari dan mengingat kembali konsep bahasa pemrograman (JavaScript, TypeScript, Python, Golang, Rust, Dart, Kotlin, Swift, Terraform) secara instan, to-the-point, dan aplikatif.
 
 ---
 
@@ -20,7 +20,7 @@ Perintah lain:
 
 ---
 
-## 🧭 Peta Modul Dokumentasi Lengkap (8 Tech Stacks)
+## 🧭 Peta Modul Dokumentasi Lengkap (9 Tech Stacks)
 
 ### 🟡 [JavaScript (9 Modul)](file:///Users/macbookair/learning/src/content/docs/javascript/01-variables-dan-tipe-data.md)
 1. `01. Variabel & Tipe Data` (`const`, `let`, `var`, primitif vs reference, template literals, type casting).
@@ -75,6 +75,14 @@ Perintah lain:
 2. `02. OOP & Class Features` (`lateinit var`, `data class` + `.copy()`, destructuring, singleton `object` vs `companion object`, delegation `by`, `by lazy`, observable properties).
 3. `03. Jetpack Compose & Arsitektur (Gaya GetX)` (Kamus GetX $\to$ Compose, Recomposition, `_private MutableStateFlow` vs `public StateFlow`, layout `Column`/`Row`/`Box`/`LazyColumn`, struktur Clean Architecture).
 
+### 🍏 [Swift & SwiftUI (6 Modul)](file:///Users/macbookair/learning/src/content/docs/swift/01-sintaks-dasar-dan-optionals.md)
+1. `01. Sintaks Dasar & Optionals` (`let` vs `var`, string interpolation, Optional `?`, unwrapping via `guard let`, `if let`, nil-coalescing `??`).
+2. `02. Koleksi & Control Flow` (Array, Set unik, Dictionary optional return, range `1...5` vs `0..<5`, switch pattern matching tuples/where, pembersihan `defer`).
+3. `03. Fungsi & Closures` (Argument labels `_` & external/internal, `inout` reference, closures expression syntax, shorthand `$0`/`$1`, trailing closures, `@escaping`, memory leak `[weak self]`).
+4. `04. Struct, Class, dan Enum` (Value type Struct vs Reference type Class, keyword `mutating`, ARC & `weak`, Enums Associated Values status network, CaseIterable).
+5. `05. Protocols, Extension, & Generics` (POP Protocol-Oriented Programming, default implementation extension, retroactive modeling tipe bawaan `Int`/`String`, Generics `<T>`, protocol `Codable` & `Identifiable`).
+6. `06. Concurrency & SwiftUI State` (Modern `async`/`await`, `Task`, `actor` bebas data-race, `@MainActor`, arsitektur SwiftUI deklaratif, state management `@State`, `@Binding`, `@Observable`).
+
 ### ☁️ [Terraform IaC (1 Modul)](file:///Users/macbookair/learning/src/content/docs/terraform/01-commands-dan-workflow.md)
 1. `01. Perintah Inti & Alur Kerja` (5 Perintah wajib: `init` $\to$ `validate` $\to$ `plan` $\to$ `apply` $\to$ `destroy`, `-auto-approve`, fungsi file `terraform.tfstate`).
 
@@ -98,6 +106,7 @@ learning/
 │   ├── rust/                              # 6 modul Rust
 │   ├── dart/                              # 5 modul Dart
 │   ├── kotlin/                            # 3 modul Kotlin
+│   ├── swift/                             # 6 modul Swift & SwiftUI
 │   └── terraform/                         # 1 modul Terraform
 │
 ├── javascript -> src/content/docs/javascript # Symlink cepat di root
@@ -107,5 +116,6 @@ learning/
 ├── rust -> src/content/docs/rust             # Symlink cepat di root
 ├── dart -> src/content/docs/dart             # Symlink cepat di root
 ├── kotlin -> src/content/docs/kotlin         # Symlink cepat di root
+├── swift -> src/content/docs/swift           # Symlink cepat di root
 └── terraform -> src/content/docs/terraform   # Symlink cepat di root
 ```

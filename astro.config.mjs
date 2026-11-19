@@ -37,6 +37,10 @@ export default defineConfig({
           items: [{ autogenerate: { directory: 'kotlin' } }],
         },
         {
+          label: '🍏 Swift & SwiftUI',
+          items: [{ autogenerate: { directory: 'swift' } }],
+        },
+        {
           label: '☁️ Terraform (IaC)',
           items: [{ autogenerate: { directory: 'terraform' } }],
         },

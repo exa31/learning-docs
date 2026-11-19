@@ -3,7 +3,7 @@ title: Personal Dev Docs 📖
 description: Catatan sintaks praktis, cheatsheet, dan pengingat teknologi harian dengan bahasa santai to-the-point.
 template: splash
 hero:
-  tagline: Dokumentasi & cheatsheet praktis pribadi untuk JavaScript, TypeScript, Python, Golang, Rust, Dart, Kotlin, dan Terraform. Langsung ke intinya tanpa teori bertele-tele.
+  tagline: Dokumentasi & cheatsheet praktis pribadi untuk JavaScript, TypeScript, Python, Golang, Rust, Dart, Kotlin, Swift, dan Terraform. Langsung ke intinya tanpa teori bertele-tele.
   actions:
     - text: Mulai dari JavaScript
       link: /javascript/01-variables-dan-tipe-data/
@@ -54,6 +54,11 @@ import { Card, CardGrid } from '@astrojs/starlight/components';
 		Sintaks andalan (extension, infix, tailrec, lambda, inline fun), OOP (data class, singleton, by lazy), dan **Compose mental model GetX**.
 		<br/>
 		[Buka Catatan Kotlin &rarr;](/kotlin/01-syntax-dasar-dan-fungsi/)
+	</Card>
+	<Card title="🍏 Swift & SwiftUI (6 Modul)" icon="apple">
+		Optionals (`guard let`, `if let`), Value vs Reference (Struct vs Class), Enums Associated Values, Extensions, Async/Await, dan **SwiftUI State**.
+		<br/>
+		[Buka Catatan Swift &rarr;](/swift/01-sintaks-dasar-dan-optionals/)
 	</Card>
 	<Card title="☁️ Terraform IaC (1 Modul)" icon="seti:terraform">
 		5 Perintah wajib alur kerja Terraform: `init` &rarr; `validate` &rarr; `plan` &rarr; `apply` &rarr; `destroy`.
