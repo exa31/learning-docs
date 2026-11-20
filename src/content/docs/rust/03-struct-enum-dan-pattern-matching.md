@@ -1,17 +1,38 @@
 ---
-title: "03. Struct, Enum & Pattern Matching"
-description: Structs, method impl, enum dengan data terikat, dan exhaustive pattern matching dengan match dan if-let.
+title: "03. Struct, Enums & Exhaustive Pattern Matching"
+description: Classic & tuple structs, method receivers (&self vs &mut self), enum data variants, match exhaustiveness, match guards, dan modern let-else guard di Rust.
 ---
 
-# 🦀 Rust - Modul 03: Struct, Enum & Pattern Matching
+# 🦀 Rust - Modul 03: Struct, Enums & Exhaustive Pattern Matching
 
-Cheatsheet kilat pembuatan struktur data dan pencocokan pola (*pattern matching*) super aman di Rust.
+Rust tidak memiliki konsep *class* dan *inheritance*. Sebagai gantinya, pemodelan domain dilakukan melalui kombinasi **Struct**, **Enums berdata (Algebraic Data Types)**, dan **Pattern Matching** yang komprehensif.
 
 ---
 
-## 1. Struct & Method (`impl`)
+## 1. Tiga Bentuk Struct di Rust
 
-Method di Rust ditempelkan di blok terpisah menggunakan kata kunci `impl`:
+```rust
+// 1. Classic Named-Field Struct
+struct User {
+    username: String,
+    email: String,
+    sign_in_count: u64,
+    is_active: bool,
+}
+
+// 2. Tuple Struct (Cocok untuk membuat type wrapper / NewType pattern)
+struct Koordinat(f64, f64);
+struct Color(u8, u8, u8);
+
+// 3. Unit-Like Struct (Tanpa field, berguna untuk marker trait)
+struct AlwaysEqual;
+```
+
+---
+
+## 2. Implementasi Method & Associated Functions (`impl`)
+
+Method didefinisikan di dalam blok `impl`. Hubungan kepemilikan ditentukan oleh receiver parameter pertamanya:
 
 ```rust
 struct PersegiPanjang {
@@ -20,58 +41,54 @@ struct PersegiPanjang {
 }
 
 impl PersegiPanjang {
-    // Constructor (Associated function - dipanggil dengan PersegiPanjang::baru):
-    fn baru(p: u32, l: u32) -> Self {
-        Self { panjang: p, lebar: l }
+    // Associated Function (Tanpa self, seperti static constructor)
+    fn new(panjang: u32, lebar: u32) -> Self {
+        Self { panjang, lebar }
     }
 
-    // Method (Menerima &self untuk meminjam data struct):
-    fn hitung_luas(&self) -> u32 {
+    // Method Immutable: Hanya meminjam data untuk dibaca
+    fn luas(&self) -> u32 {
         self.panjang * self.lebar
     }
-}
 
-fn main() {
-    let kotak = PersegiPanjang::baru(10, 5);
-    println!("Luas: {}", kotak.hitung_luas()); // 50
-}
-```
+    // Method Mutable: Meminjam data untuk dimodifikasi
+    fn kalikan_dua(&mut self) {
+        self.panjang *= 2;
+        self.lebar *= 2;
+    }
 
----
-
-## 2. Enum dengan Nilai Terikat (Sangat Kuat di Rust)
-
-Berbeda dengan bahasa lain di mana enum hanyalah angka integer, Enum di Rust bisa **membawa data dengan tipe berbeda-beda** di setiap variasinya:
-
-```rust
-enum PesanWebsocket {
-    Keluar,                          // Tanpa data
-    KirimTeks(String),               // Membawa String
-    PindahPosisi { x: i32, y: i32 }, // Membawa anonymous struct
-    UbahWarna(u8, u8, u8),           // Membawa tuple RGB
+    // Method Consuming (self): Menelan kepemilikan objek (objek hancur setelah ini dipanggil)
+    fn hancurkan(self) {
+        println!("Persegi berukuran {}x{} dihancurkan", self.panjang, self.lebar);
+    }
 }
 ```
 
 ---
 
-## 3. Pattern Matching: `match` (Wajib Menghabiskan Semua Kasus)
+## 3. Enums sebagai Algebraic Data Types (Bisa Menampung Data!)
 
-`match` di Rust bersifat **exhaustive** (compiler akan error jika kamu lupa menangani salah satu varian enum):
+Di C atau Java klasik, Enum hanyalah daftar integer bernama. Di Rust, setiap varian enum bisa menampung tipe data yang sama sekali berbeda:
 
 ```rust
-fn proses_pesan(pesan: PesanWebsocket) {
-    match pesan {
-        PesanWebsocket::Keluar => {
-            println!("User disconnect.");
+enum StatusTransaksi {
+    Pending,                        // Varian kosong
+    Sukses { reference_id: String }, // Varian struct
+    Gagal(String),                  // Varian tuple (pesan error)
+    Refund(u64, String),            // Varian tuple multi-field (nominal, alasan)
+}
+
+fn proses_status(trx: StatusTransaksi) {
+    match trx {
+        StatusTransaksi::Pending => println!("Menunggu pembayaran..."),
+        StatusTransaksi::Sukses { reference_id } => {
+            println!("Pembayaran terverifikasi: {}", reference_id);
         }
-        PesanWebsocket::KirimTeks(teks) => {
-            println!("Pesan masuk: {}", teks);
+        StatusTransaksi::Gagal(alasan) => {
+            println!("Transaksi ditolak: {}", alasan);
         }
-        PesanWebsocket::PindahPosisi { x, y } => {
-            println!("Pindah ke koordinat x={}, y={}", x, y);
-        }
-        PesanWebsocket::UbahWarna(r, g, b) => {
-            println!("RGB({}, {}, {})", r, g, b);
+        StatusTransaksi::Refund(nominal, alasan) => {
+            println!("Refund Rp{} diproses dengan alasan: {}", nominal, alasan);
         }
     }
 }
@@ -79,15 +96,54 @@ fn proses_pesan(pesan: PesanWebsocket) {
 
 ---
 
-## 4. `if let` (Sintaks Ringkas untuk 1 Kasus Saja)
+## 4. Kehebatan Pattern Matching (`match`)
 
-Jika kamu hanya peduli pada **satu varian tertentu** dan ingin mengabaikan sisanya tanpa menulis seluruh blok `match`:
+Blok `match` di Rust memiliki jaminan **Exhaustive**: jika ada satu kemungkinan varian yang lupa ditangani, kode **tidak akan bisa dikompilasi**!
 
 ```rust
-let pesan = PesanWebsocket::KirimTeks(String::from("Halo!"));
+let angka = 15;
 
-// Hanya jalankan jika variannya adalah KirimTeks:
-if let PesanWebsocket::KirimTeks(isi) = pesan {
-    println!("Dapat pesan teks: {}", isi);
+match angka {
+    0 => println!("Nol"),
+    1 | 2 | 3 => println!("Satu, dua, atau tiga"),
+    4..=10 => println!("Antara empat hingga sepuluh"),
+    // Match Guard: Tambahan filter kondisi logika dengan 'if'
+    x if x % 2 == 0 => println!("Angka genap besar: {}", x),
+    _ => println!("Angka ganjil lainnya"), // Wildcard penampung sisa
+}
+```
+
+---
+
+## 5. Alur Ringkas: `if let` & `let else` (Rust 1.65+)
+
+### A. `if let`: Menangani 1 Pola Tertentu
+Jika kita hanya peduli pada satu varian dan mengabaikan yang lain:
+```rust
+let config: Option<String> = Some(String::from("v2"));
+
+if let Some(versi) = config {
+    println!("Versi aktif: {}", versi);
+}
+```
+
+### B. `let else`: Pola Golden Path Guard (Paling Bersih di Produksi)
+`let else` memungkinkan *early return* langsung sambil mengekstrak nilai tanpa sarang kurung kurawal (*nesting hell*):
+
+```rust
+fn ambil_email_user(id: i32) -> Option<String> {
+    // Simulasi query
+    Some(String::from("eka@dev.cloud"))
+}
+
+fn proses_notifikasi(user_id: i32) {
+    // Ekstrak nilai secara instan, atau paksa keluar jika None:
+    let Some(email) = ambil_email_user(user_id) else {
+        println!("User tidak punya email terdaftar, batalkan!");
+        return; // Blok 'else' WAJIB diakhiri dengan return, break, continue, atau panic!
+    };
+
+    // 'email' langsung bisa dipakai di sisa fungsi tanpa indentasi bersarang!
+    println!("Mengirim notifikasi ke: {}", email);
 }
 ```

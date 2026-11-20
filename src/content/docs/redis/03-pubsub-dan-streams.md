@@ -1,94 +1,100 @@
 ---
-title: "03. Pub/Sub vs Redis Streams"
-description: Perbedaan Pub/Sub fire-and-forget vs Redis Streams persisten (XADD, XREAD, Consumer Groups, XACK, dan Pending Entries List).
+title: "03. Pub/Sub Ephemeral vs Redis Streams Persisten (Kafka-Like)"
+description: Perbedaan arsitektur Pub/Sub vs Streams, Consumer Groups, XADD, XREADGROUP, XACK, dan pemulihan pesan macet XAUTOCLAIM di Redis.
 ---
 
-# 🔴 Redis - Modul 03: Pub/Sub vs Redis Streams
+# 🔴 Redis - Modul 03: Pub/Sub Ephemeral vs Redis Streams Persisten (Kafka-Like)
 
-Redis memiliki dua mekanisme olah pesan (*messaging*): **Pub/Sub klasik** untuk siaran instan tanpa jejak, dan **Redis Streams** untuk antrean pesan persisten dengan Consumer Group mirip Apache Kafka versi ringan.
-
----
-
-## 1. Pub/Sub Klasik (Fire-and-Forget)
-
-Pola siaran pesan real-time: penerbit (*publisher*) mengirim pesan ke saluran (*channel*), dan semua pelanggan (*subscriber*) yang sedang mendengarkan akan menerima pesan tersebut.
-
-```bash
-# Sesi 1: Subscriber mendengarkan channel 'notif:transaksi'
-SUBSCRIBE notif:transaksi
-
-# Sesi 2: Publisher mengirim pesan
-PUBLISH notif:transaksi "Order #101 berhasil dibayar!"
-```
-
-### Kelemahan Fatal Pub/Sub Klasik:
-> ⚠️ **TIDAK ADA PERSISTENSI**: Jika server worker subscriber sedang mati, restart, atau mengalami lonjakan network lag selama 2 detik saja, **pesan yang dipublikasikan saat itu HILANG SELAMANYA** tanpa bisa diputar ulang!
+Redis menyediakan dua model pengiriman pesan (*messaging*): **Pub/Sub konvensional** yang bersifat instan tanpa penyimpanan, dan **Redis Streams** yang mengimplementasikan arsitektur log persisten ala Apache Kafka dengan dukungan *Consumer Groups*.
 
 ---
 
-## 2. Redis Streams (Arsitektur Pesan Modern & Persisten)
+## 1. Perbandingan Arsitektur: Pub/Sub vs Streams
 
-Redis Streams (tersedia sejak Redis 5.0) adalah log pesan yang **disimpan secara persisten ke memori/disk**, mendukung riwayat pesan, penomoran urut otomatis berdasarkan waktu (*millisecond timestamp*), dan Consumer Groups.
+| Fitur | Pub/Sub Klasik | Redis Streams (`XADD`) |
+|---|---|---|
+| **Penyimpanan Pesan** | ❌ **Ephemeral**: Pesan langsung hilang setelah dikirim (*Fire-and-Forget*). | ✅ **Persisten**: Pesan disimpan di RAM dan log disk secara permanen. |
+| **Subscriber Offline** | Pesan **HILANG SELAMANYA** jika subscriber sedang down/restart. | Pesan **AMAN TERSIMPAN** dan bisa dibaca ulang saat worker menyala kembali. |
+| **Beban Kerja Paralel** | Semua subscriber menerima salinan pesan yang sama (Broadcast). | **Consumer Group**: Pesan didistribusikan ke worker berbeda tanpa duplikasi kerja. |
+| **Konfirmasi Penerimaan** | Tidak ada (*No Acknowledgement*). | ✅ **Message ACK (`XACK`)** menjamin pesan selesai diproses (*At-Least-Once Delivery*). |
 
-### A. Memasukkan Pesan ke Stream (`XADD`)
-Gunakan tanda bintang `*` agar Redis membuat Message ID unik berbasis waktu otomatis:
+---
+
+## 2. Pub/Sub Klasik: Broadcast Instan
+
+Sangat cocok untuk notifikasi realtime Webhook atau invalidasi cache antar server di mana hilangnya satu pesan bukan bencana fatal:
 
 ```bash
-# XADD <stream-key> <ID> <field> <value> ...
-XADD pesanan:masuk * user_id "101" total "500000" barang "MacBook"
-# Output ID: "1732098765432-0" (timestamp-sequence)
-```
+# Terminal 1: Berlangganan topik (Blocking listener)
+SUBSCRIBE notifikasi:order
 
-### B. Membaca Pesan Sendiri (`XREAD`)
-```bash
-# Baca 2 pesan pertama dari awal stream (ID 0-0):
-XREAD COUNT 2 STREAMS pesanan:masuk 0-0
+# Terminal 2: Memancarkan pesan ke topik
+PUBLISH notifikasi:order "Order #8821 berhasil dibayar!"
 
-# Polling blocking (tunggu sampai ada pesan baru, timeout 5000ms):
-XREAD BLOCK 5000 STREAMS pesanan:masuk $
+# Berlangganan dengan pola wildcard (PSUBSCRIBE):
+PSUBSCRIBE notifikasi:* # Mendengarkan notifikasi:order, notifikasi:user, dll.
 ```
 
 ---
 
-## 3. Consumer Groups (Pola Multi-Worker Anti Dobel Proses)
+## 3. Redis Streams: Antrean Pesan Tangguh (Like Kafka)
 
-Dengan Consumer Group, banyak worker dapat bekerja sama membagi beban membaca stream tanpa khawatir memproses pesan yang sama (*Load Balanced Consumption*):
+Setiap entri stream diberi ID otomatis berbasis timestamp milidetik sistem: `<millisecondsTime>-<sequenceNumber>` (Contoh: `1700000000000-0`).
 
-```text
-                  ┌──────────────────────┐
-                  │ Stream: pesanan:masuk│
-                  └──────────┬───────────┘
-                             │
-                      Consumer Group
-                   ┌─────────┴─────────┐
-                   ▼                   ▼
-            Worker 1 (Pesan 1)  Worker 2 (Pesan 2)
+```mermaid
+flowchart LR
+    Producer["Backend App"] -->|XADD| Stream["Redis Stream: antrean:transaksi"]
+    Stream --> Group["Consumer Group: group_billing"]
+    Group --> W1["Worker 1 (Memproses ID 1)"]
+    Group --> W2["Worker 2 (Memproses ID 2)"]
+    W1 -.->|XACK (Selesai)| Stream
 ```
 
-### Langkah 1: Buat Consumer Group
+### A. Menambahkan Pesan ke Stream (`XADD`)
 ```bash
-# Buat group 'group-order' yang mulai membaca dari pesan paling awal ('0'):
-XGROUP CREATE pesanan:masuk group-order 0 MKSTREAM
-```
+# Menambahkan pesan (Tanda '*' berarti ID timestamp dibuat otomatis oleh Redis):
+XADD stream:order * user_id 101 total 500000 status "NEW"
+# Output ID: "1732078900123-0"
 
-### Langkah 2: Worker Membaca Pesan Baru (`>`)
-Tanda `>` artinya: "Berikan saya pesan yang BELUM PERNAH diberikan ke worker manapun di group ini":
-```bash
-# XREADGROUP GROUP <group> <consumer-name> STREAMS <stream> >
-XREADGROUP GROUP group-order worker-alpha COUNT 1 STREAMS pesanan:masuk >
-```
-
-### Langkah 3: Konfirmasi Pesan Sukses (`XACK`)
-Setelah worker selesai memproses pesanan dan menyimpannya ke database, kirim konfirmasi agar pesan dikeluarkan dari antrean tertunda (*Pending Entries List*):
-```bash
-XACK pesanan:masuk group-order "1732098765432-0"
+# Membatasi panjang antrean maksimal 100.000 entri (Trim hemat RAM):
+XADD stream:order MAXLEN ~ 100000 * user_id 102 total 120000 status "NEW"
 ```
 
 ---
 
-## 4. Menangani Worker yang Crash: `XPENDING` & `XCLAIM`
+## 4. Consumer Groups & Alur Pemrosesan Produksi
 
-Jika Worker Alpha mengambil pesan lalu tiba-tiba servernya mati sebelum mengirim `XACK`:
-1. Pesan akan tetap berada di **Pending Entries List (PEL)**.
-2. Worker Bravo yang masih hidup bisa mendeteksi pesan macet dengan `XPENDING`.
-3. Worker Bravo mengambil alih kepemilikan pesan tersebut dengan **`XCLAIM`** dan memprosesnya hingga tuntas.
+Consumer Group membagi beban kerja secara adil di antara sekelompok worker:
+
+```bash
+# 1. Buat Consumer Group bernama 'group_pemroses':
+# Simbol '$' artinya group hanya mendengarkan pesan BARU yang tiba setelah group dibuat.
+XGROUP CREATE stream:order group_pemroses $ MKSTREAM
+
+# 2. Worker 1 membaca pesan yang belum pernah diambil worker lain (Simbol '>'):
+XREADGROUP GROUP group_pemroses worker_a COUNT 1 BLOCK 2000 STREAMS stream:order >
+# Output: Pesan dengan ID "1732078900123-0"
+
+# 3. Worker memproses bisnis logic di backend...
+
+# 4. Worker mengirimkan konfirmasi selesai (ACK):
+XACK stream:order group_pemroses 1732078900123-0
+```
+
+---
+
+## 5. Menangani Worker Mati: Pelacakan Pesan Gantung (`XAUTOCLAIM`)
+
+Bagaimana jika `worker_a` mengambil pesan, namun komputernya mendadak mati (crash) sebelum sempat mengirimkan perintah `XACK`? Pesan tersebut akan tersangkut di **Pending Entries List (PEL)**.
+
+Worker lain bisa mendeteksi dan merebut pesan yang macet tersebut:
+
+```bash
+# 1. Periksa pesan yang macet di Pending Entries List:
+XPENDING stream:order group_pemroses
+
+# 2. Rebut pesan yang sudah menganggur lebih dari 60.000 milidetik (1 menit) 
+# lalu alihkan kepemilikannya ke worker_b yang masih hidup:
+XAUTOCLAIM stream:order group_pemroses worker_b 60000 0-0 COUNT 1
+```
+Dengan mekanisme ini, sistem antrean dijamin **tidak akan pernah kehilangan pesan (*Zero Message Loss*)** bahkan ketika server worker mengalami crash di tengah proses!

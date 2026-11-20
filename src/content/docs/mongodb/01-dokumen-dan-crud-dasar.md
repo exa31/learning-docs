@@ -1,164 +1,79 @@
 ---
-title: "01. Dokumen, BSON & CRUD Dasar"
-description: Anatomi BSON dan ObjectId, manipulasi dokumen dengan operasi Create, Read, Update, Delete, dan ragam operator query terlengkap di MongoDB.
+title: "01. Dokumen, BSON & Operasi CRUD Lanjutan"
+description: Format biner BSON vs JSON, anatomi 12-byte ObjectId, query filter regex, operator update $set/$inc/$push/$addToSet, dan atomic upserts di MongoDB.
 ---
 
-# 🍃 MongoDB - Modul 01: Dokumen, BSON & CRUD Dasar
+# 🍃 MongoDB - Modul 01: Dokumen, BSON & Operasi CRUD Lanjutan
 
-MongoDB adalah database NoSQL berbasis dokumen (*Document Store*) terpopuler di dunia. Alih-alih menyimpan data dalam baris dan kolom yang kaku seperti SQL relational, MongoDB menyimpan data dalam dokumen fleksibel berformat **BSON** (*Binary JSON*).
+MongoDB adalah basis data dokumen NoSQL terpopuler di dunia yang dirancang untuk skalabilitas horizontal tinggi, fleksibilitas skema dinamis, dan kecepatan pengolahan data semi-terstruktur.
 
 ---
 
-## 1. BSON vs JSON & Anatomi ObjectId
+## 1. Anatomi BSON vs JSON Standar
 
-JSON adalah format teks biasa yang hanya mendukung tipe data terbatas (string, number, boolean, array, object, null). MongoDB menggunakan **BSON** untuk memperkaya tipe data dan efisiensi traversal biner.
+Banyak yang mengira MongoDB menyimpan teks JSON biasa. Di balik layar, MongoDB menggunakan format biner bernama **BSON (Binary JSON)**:
 
-| Tipe BSON Tambahan | Deskripsi | Contoh |
+| Fitur | JSON Biasa | BSON (MongoDB) |
 |---|---|---|
-| **ObjectId** | Identifier unik 12-byte default untuk `_id` | `ObjectId("655f1a2b8e3c4a1234567890")` |
-| **Date** | Timestamp milidetik UTC 64-bit | `ISODate("2026-11-20T10:00:00Z")` |
-| **Decimal128** | Angka presisi tinggi untuk perhitungan finansial | `NumberDecimal("199.99")` |
-| **Int32 / Int64** | Tipe integer signed spesifik | `NumberInt(42)`, `NumberLong(9007199254740991)` |
-| **Binary data** | Penyimpanan byte mentah / file kecil | `BinData(0, "...")` |
+| **Representasi** | Teks ASCII / UTF-8 | Format Biner Terdekomposisi |
+| **Parsing Overhead** | Berat (Harus di-parse dari string berulang kali) | **Sangat Ringan** (Disimpan dengan prefix panjang byte dan tipe data) |
+| **Tipe Data Ekstra**| Hanya string, number, boolean, array, object, null | Mendukung **`Date` asli, `Binary` data, `Decimal128` presisi tinggi, `Regex`, dan `ObjectId`** |
 
-### Struktur 12-Byte ObjectId
-Setiap dokumen MongoDB memiliki primary key `_id`. Jika tidak disediakan, driver/server membuat ObjectId secara otomatis yang tersusun dari:
-```
- 4 bytes (Timestamp detik) + 5 bytes (Random value per proses) + 3 bytes (Counter increment)
-|-------------------------|--------------------------------|-------------------------|
+### Anatomi 12-Byte `ObjectId` ("_id"):
+Setiap dokumen memiliki primary key `_id` berukuran 12 byte yang terdistribusi dan unik secara global tanpa koordinasi pusat:
+
+```mermaid
+classDiagram
+    class ObjectId {
+        +4 Bytes: Unix Timestamp (Waktu Pembuatan)
+        +5 Bytes: Random Machine & Process Identifier
+        +3 Bytes: Incrementing Counter
+    }
 ```
 > [!TIP]
-> Karena 4 byte pertama adalah timestamp UNIX, Anda bisa mengekstrak waktu pembuatan dokumen kapan saja dengan `doc._id.getTimestamp()` tanpa perlu menyimpan kolom `created_at` terpisah!
+> **Trik Sakti**: Kamu bisa mengekstrak waktu pembuatan dokumen langsung dari `_id`-nya tanpa perlu membuat kolom `created_at` terpisah:
+> `doc._id.getTimestamp()` mengembalikan tanggal dan jam pembuatan presisi detik!
 
 ---
 
-## 2. Operasi Create (Insert)
+## 2. Operasi Query Filter Canggih
 
 ```javascript
-// A. Insert 1 dokumen
-db.users.insertOne({
-  nama: "Eka Dev",
-  email: "eka@dev.local",
-  usia: 28,
-  hobi: ["coding", "gaming"],
-  alamat: {
-    kota: "Jakarta",
-    kodepos: 12340
-  },
-  status: "ACTIVE",
-  terdaftar_pada: new Date()
-});
-
-// B. Insert banyak dokumen sekaligus (Batch)
-db.products.insertMany([
-  { sku: "KB-01", nama: "Mechanical Keyboard", harga: 750000, stok: 15 },
-  { sku: "MS-02", nama: "Wireless Mouse", harga: 350000, stok: 40 },
-  { sku: "MN-03", nama: "Monitor 27 Inch 4K", harga: 4200000, stok: 8 }
-], { ordered: false }); // ordered: false agar jika 1 item error, item lain tetap lanjut di-insert!
+// Mengambil dokumen dengan kriteria majemuk:
+db.pengguna.find({
+    umur: { $gte: 18, $lte: 65 },          // Operator perbandingan: 18 <= umur <= 65
+    status: { $in: ["AKTIF", "PENDING"] },  // Berada di salah satu himpunan
+    "alamat.kota": "Jakarta",               // Query field bersarang (Dot Notation)
+    hobi: { $all: ["koding", "kopi"] },     // Array wajib mengandung KEDUA elemen ini
+    tags: { $size: 3 }                      // Panjang array tepat 3 elemen
+})
+.sort({ umur: -1, nama: 1 })               // Urutkan umur DESC, nama ASC
+.skip(20)                                  // Paginasi offset
+.limit(10);                                // Ambil 10 baris
 ```
 
 ---
 
-## 3. Operasi Read (Query & Filter Operators)
+## 3. Operator Mutasi Update Atomik
 
-### A. Operator Perbandingan & Logika
-```javascript
-// Operator perbandingan ($gt, $gte, $lt, $lte, $in, $ne)
-db.products.find({
-  harga: { $gte: 500000, $lte: 5000000 },
-  stok: { $gt: 0 }
-});
-
-// Operator Logika ($or, $and, $not, $nor)
-db.users.find({
-  $or: [
-    { status: "ACTIVE" },
-    { usia: { $gte: 30 } }
-  ]
-});
-
-// Pencarian dalam objek bersarang (Dot Notation)
-db.users.find({
-  "alamat.kota": "Jakarta"
-});
-```
-
-### B. Operator Array Canggih
-```javascript
-// 1. $in: Mencocokkan elemen yang ada di daftar
-db.users.find({ hobi: { $in: ["gaming", "reading"] } });
-
-// 2. $all: Array HARUS memiliki kedua elemen tersebut
-db.users.find({ hobi: { $all: ["coding", "gaming"] } });
-
-// 3. $elemMatch: Mencari objek dalam array yang memenuhi BANYAK kondisi sekaligus
-db.orders.find({
-  items: {
-    $elemMatch: {
-      kategori: "Elektronik",
-      subtotal: { $gt: 1000000 }
-    }
-  }
-});
-```
-
-### C. Proyeksi (Memilih Field Tertentu)
-```javascript
-// Hanya ambil kolom nama dan email (sembunyikan _id)
-db.users.find(
-  { status: "ACTIVE" },
-  { nama: 1, email: 1, _id: 0 }
-).sort({ nama: 1 }).limit(10).skip(20);
-```
-
----
-
-## 4. Operasi Update (Atomic Field & Array Modifiers)
-
-Hindari menimpa seluruh dokumen! Selalu gunakan operator modifikasi agar operasi berlangsung aman dan atomik:
+Hindari menimpa seluruh dokumen! Selalu gunakan operator pembaruan atomik:
 
 ```javascript
-// A. Field Operators ($set, $unset, $inc)
-db.products.updateOne(
-  { sku: "KB-01" },
-  {
-    $set: { status: "PROMO" },      // Update atau tambah field baru
-    $inc: { stok: -1, terjual: 1 },  // Tambah/kurang angka secara atomik
-    $currentDate: { updated_at: true } // Isi dengan waktu sekarang
-  }
+db.produk.updateOne(
+    { _id: ObjectId("665123456789abcdef012345") },
+    {
+        // 1. $set: Mengubah atau menambah field spesifik tanpa merusak field lain
+        $set: { harga: 150000, "spesifikasi.garansi": "2 Tahun", updated_at: new Date() },
+
+        // 2. $inc: Menambah angka secara atomik (Anti Race Condition!)
+        $inc: { stok: -1, terjual: 1 },
+
+        // 3. $push: Menambahkan elemen baru ke dalam array
+        $push: { riwayat_harga: { tanggal: new Date(), harga: 150000 } },
+
+        // 4. $addToSet: Menambahkan ke array HANYA JIKA elemen belum pernah ada (Otomatis Unik)
+        $addToSet: { tags: "diskon_kilat" }
+    },
+    { upsert: true } // Jika dokumen tidak ditemukan, BUAT BARU seketika!
 );
-
-// B. Array Modifiers ($push, $addToSet, $pull)
-// Menambah item ke array (tanpa duplikat):
-db.users.updateOne(
-  { email: "eka@dev.local" },
-  { $addToSet: { hobi: "traveling" } }
-);
-
-// Menghapus item dari array:
-db.users.updateOne(
-  { email: "eka@dev.local" },
-  { $pull: { hobi: "reading" } }
-);
-
-// C. Upsert (Update jika ketemu, buat baru jika tidak ada)
-db.settings.updateOne(
-  { key: "maintenance_mode" },
-  { $set: { value: false, updated_by: "system" } },
-  { upsert: true }
-);
-```
-
----
-
-## 5. Operasi Delete
-
-```javascript
-// Hapus 1 dokumen:
-db.users.deleteOne({ email: "spammer@bad.com" });
-
-// Hapus banyak dokumen:
-db.logs.deleteMany({
-  created_at: { $lt: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000) } // Hapus log > 30 hari
-});
 ```
