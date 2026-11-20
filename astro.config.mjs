@@ -58,7 +58,7 @@ export default defineConfig({
           items: [{ autogenerate: { directory: 'rust' } }],
         },
         {
-          label: '🎯 Dart (Flutter)',
+          label: '🎯 Dart (Core)',
           items: [{ autogenerate: { directory: 'dart' } }],
         },
         {
@@ -66,12 +66,20 @@ export default defineConfig({
           items: [{ autogenerate: { directory: 'kotlin' } }],
         },
         {
+          label: '🍏 Swift (Core)',
+          items: [{ autogenerate: { directory: 'swift' } }],
+        },
+        {
+          label: '🎨 Flutter (Cross-Platform)',
+          items: [{ autogenerate: { directory: 'flutter' } }],
+        },
+        {
           label: '📱 Jetpack Compose (Android)',
           items: [{ autogenerate: { directory: 'compose' } }],
         },
         {
-          label: '🍏 Swift & SwiftUI',
-          items: [{ autogenerate: { directory: 'swift' } }],
+          label: '🍎 SwiftUI (iOS & Apple)',
+          items: [{ autogenerate: { directory: 'swiftui' } }],
         },
         {
           label: '☁️ Terraform (IaC)',

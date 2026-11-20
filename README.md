@@ -20,7 +20,7 @@ Perintah lain:
 
 ---
 
-## 🧭 Peta Modul Dokumentasi Lengkap (10 Tech Stacks & Frameworks)
+## 🧭 Peta Modul Dokumentasi Lengkap (12 Tech Stacks & Frameworks)
 
 ### 🟡 [JavaScript (9 Modul)](file:///Users/macbookair/learning/src/content/docs/javascript/01-variables-dan-tipe-data.md)
 1. `01. Variabel & Tipe Data` (`const`, `let`, `var`, primitif vs reference, template literals, type casting).
@@ -79,6 +79,21 @@ Perintah lain:
 6. `06. Cheatsheet Scope Functions` (Matriks 5 fungsi: `apply`, `also`, `let`, `run`, `with`, perbedaan `this` vs `it`, context object vs lambda result, rumus cepat pemilih).
 7. `07. Coroutines & Flow` (`suspend fun`, `Dispatchers` Main/IO/Default, `withContext`, `launch` vs `async`/`await`, `supervisorScope`, Reactive Cold Stream `Flow`, `StateFlow` vs `SharedFlow`).
 
+### 🍏 [Swift (6 Modul)](file:///Users/macbookair/learning/src/content/docs/swift/01-sintaks-dasar-dan-optionals.md)
+1. `01. Sintaks Dasar & Optionals` (`let` vs `var`, string interpolation, Optional `?`, unwrapping via `guard let`, `if let`, nil-coalescing `??`).
+2. `02. Koleksi & Control Flow` (Array, Set unik, Dictionary optional return, range `1...5` vs `0..<5`, switch pattern matching tuples/where, pembersihan `defer`).
+3. `03. Fungsi & Closures` (Argument labels `_` & external/internal, `inout` reference, closures expression syntax, shorthand `$0`/`$1`, trailing closures, `@escaping`, memory leak `[weak self]`).
+4. `04. Struct, Class, dan Enum` (Value type Struct vs Reference type Class, keyword `mutating`, ARC & `weak`, Enums Associated Values status network, CaseIterable).
+5. `05. Protocols, Extension, & Generics` (POP Protocol-Oriented Programming, default implementation extension, retroactive modeling tipe bawaan `Int`/`String`, Generics `<T>`, protocol `Codable` & `Identifiable`).
+6. `06. Concurrency & Actors` (Modern `async`/`await`, `Task`, `async let`, `withTaskGroup`, `actor` bebas data-race, `@MainActor`, protokol `Sendable`).
+
+### 🎨 [Flutter (5 Modul)](file:///Users/macbookair/learning/src/content/docs/flutter/01-widget-tree-dan-lifecycle.md)
+1. `01. Widget Tree & Lifecycle` (Everything is a Widget, `StatelessWidget` vs `StatefulWidget`, State Lifecycle `initState`/`build`/`dispose`, Hot Reload vs Hot Restart).
+2. `02. Layouts & Constraints` (Layout containers `Column`/`Row`/`Stack`, `Container` vs `SizedBox`, `Expanded` vs `Flexible`, solusi error `RenderFlex overflowed`).
+3. `03. Scrollable Views & Lists` (Pengganti RecyclerView: `ListView.builder`, `GridView.builder`, `RefreshIndicator` pull-to-refresh, `ScrollController` infinite scroll).
+4. `04. State Management (GetX)` (Reaktivitas `.obs` & `GetxController`, `Obx(() => ...)`, Dependency Injection `Get.put()`/`Get.find()`, Workers `debounce`/`ever`).
+5. `05. Navigation & REST API` (Navigasi tanpa BuildContext `Get.to()`/`Get.back()`, dialog/snackbar instan, integrasi REST API dengan `http`, Clean Architecture layout).
+
 ### 📱 [Jetpack Compose (6 Modul)](file:///Users/macbookair/learning/src/content/docs/compose/01-mental-model-dan-recomposition.md)
 1. `01. Mental Model & Recomposition` (Kamus padanan GetX $\to$ Compose, deklaratif `UI = f(State)`, Recomposition skipping, `remember` vs `rememberSaveable`).
 2. `02. State Management & ViewModel` (Unidirectional Data Flow UDF & State Hoisting, `_private MutableStateFlow` vs `public StateFlow`, `collectAsStateWithLifecycle()`, `sealed interface UiState`).
@@ -87,13 +102,12 @@ Perintah lain:
 5. `05. Side Effects & Lifecycle` (Kapan butuh effect, `LaunchedEffect`, `rememberCoroutineScope`, `DisposableEffect`, handling one-off events Snackbar & navigasi).
 6. `06. Navigation & Arsitektur` (Compose Navigation modern `NavHost`, argument passing, type-safe navigation, DI Koin/Hilt, arsitektur Clean Architecture presentation layer).
 
-### 🍏 [Swift & SwiftUI (6 Modul)](file:///Users/macbookair/learning/src/content/docs/swift/01-sintaks-dasar-dan-optionals.md)
-1. `01. Sintaks Dasar & Optionals` (`let` vs `var`, string interpolation, Optional `?`, unwrapping via `guard let`, `if let`, nil-coalescing `??`).
-2. `02. Koleksi & Control Flow` (Array, Set unik, Dictionary optional return, range `1...5` vs `0..<5`, switch pattern matching tuples/where, pembersihan `defer`).
-3. `03. Fungsi & Closures` (Argument labels `_` & external/internal, `inout` reference, closures expression syntax, shorthand `$0`/`$1`, trailing closures, `@escaping`, memory leak `[weak self]`).
-4. `04. Struct, Class, dan Enum` (Value type Struct vs Reference type Class, keyword `mutating`, ARC & `weak`, Enums Associated Values status network, CaseIterable).
-5. `05. Protocols, Extension, & Generics` (POP Protocol-Oriented Programming, default implementation extension, retroactive modeling tipe bawaan `Int`/`String`, Generics `<T>`, protocol `Codable` & `Identifiable`).
-6. `06. Concurrency & SwiftUI State` (Modern `async`/`await`, `Task`, `actor` bebas data-race, `@MainActor`, arsitektur SwiftUI deklaratif, state management `@State`, `@Binding`, `@Observable`).
+### 🍎 [SwiftUI (5 Modul)](file:///Users/macbookair/learning/src/content/docs/swiftui/01-mental-model-dan-layout.md)
+1. `01. Mental Model & Layouts` (Deklaratif `UI = f(State)`, View Builder `some View`, container `VStack`/`HStack`/`ZStack`, hukum urutan modifier chaining, `.frame()`).
+2. `02. State Management` (`@State` private local, `@Binding` dua arah dengan `$`, modern macro `@Observable` Swift 5.9+ / iOS 17+, `@Environment` konteks global).
+3. `03. List & Navigation` (Pengganti TableView: `List` & `ForEach` `Identifiable`, `NavigationStack` modern iOS 16+, type-safe `.navigationDestination(for:)`, `.searchable()`).
+4. `04. Lifecycle & Modal Effects` (Async `.task`, `.onAppear`/`.onDisappear`, `.onChange` reaktif, pop-up Sheet modal, Alert dialog).
+5. `05. Arsitektur MVVM & REST API` (Clean Architecture MVVM, `@Observable` ViewModel, REST API async/await dengan URLSession, mock data `#Preview`).
 
 ### ☁️ [Terraform IaC (1 Modul)](file:///Users/macbookair/learning/src/content/docs/terraform/01-commands-dan-workflow.md)
 1. `01. Perintah Inti & Alur Kerja` (5 Perintah wajib: `init` $\to$ `validate` $\to$ `plan` $\to$ `apply` $\to$ `destroy`, `-auto-approve`, fungsi file `terraform.tfstate`).
@@ -118,8 +132,10 @@ learning/
 │   ├── rust/                              # 6 modul Rust
 │   ├── dart/                              # 5 modul Dart
 │   ├── kotlin/                            # 7 modul Kotlin (Core)
+│   ├── swift/                             # 6 modul Swift (Core)
+│   ├── flutter/                           # 5 modul Flutter (Cross-Platform UI)
 │   ├── compose/                           # 6 modul Jetpack Compose (Android UI)
-│   ├── swift/                             # 6 modul Swift & SwiftUI
+│   ├── swiftui/                           # 5 modul SwiftUI (iOS & Apple UI)
 │   └── terraform/                         # 1 modul Terraform
 │
 ├── javascript -> src/content/docs/javascript # Symlink cepat di root
@@ -129,7 +145,9 @@ learning/
 ├── rust -> src/content/docs/rust             # Symlink cepat di root
 ├── dart -> src/content/docs/dart             # Symlink cepat di root
 ├── kotlin -> src/content/docs/kotlin         # Symlink cepat di root
-├── compose -> src/content/docs/compose       # Symlink cepat di root
 ├── swift -> src/content/docs/swift           # Symlink cepat di root
+├── flutter -> src/content/docs/flutter       # Symlink cepat di root
+├── compose -> src/content/docs/compose       # Symlink cepat di root
+├── swiftui -> src/content/docs/swiftui       # Symlink cepat di root
 └── terraform -> src/content/docs/terraform   # Symlink cepat di root
 ```
