@@ -85,6 +85,30 @@ export default defineConfig({
           label: '☁️ Terraform (IaC)',
           items: [{ autogenerate: { directory: 'terraform' } }],
         },
+        {
+          label: '🐘 PostgreSQL',
+          items: [{ autogenerate: { directory: 'postgresql' } }],
+        },
+        {
+          label: '🐬 MySQL',
+          items: [{ autogenerate: { directory: 'mysql' } }],
+        },
+        {
+          label: '🔴 Redis',
+          items: [{ autogenerate: { directory: 'redis' } }],
+        },
+        {
+          label: '🍃 MongoDB',
+          items: [{ autogenerate: { directory: 'mongodb' } }],
+        },
+        {
+          label: '📊 Google BigQuery',
+          items: [{ autogenerate: { directory: 'bigquery' } }],
+        },
+        {
+          label: '⚡ Google Cloud Bigtable',
+          items: [{ autogenerate: { directory: 'bigtable' } }],
+        },
       ],
     }),
   ],

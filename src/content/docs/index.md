@@ -3,7 +3,7 @@ title: Personal Dev Docs 📖
 description: Catatan sintaks praktis, cheatsheet, dan pengingat teknologi harian dengan bahasa santai to-the-point.
 template: splash
 hero:
-  tagline: Dokumentasi & cheatsheet praktis pribadi untuk JavaScript, TypeScript, Python, Golang, Rust, Dart, Kotlin, Swift, Flutter, Jetpack Compose, SwiftUI, dan Terraform. Langsung ke intinya tanpa teori bertele-tele.
+  tagline: Dokumentasi & cheatsheet praktis pribadi untuk 8 Bahasa Pemrograman, 3 UI Frameworks, Terraform, dan 6 Database Modern (PostgreSQL, MySQL, Redis, MongoDB, BigQuery, Bigtable). Langsung ke intinya tanpa teori bertele-tele.
   actions:
     - text: Mulai dari JavaScript
       link: /javascript/01-variables-dan-tipe-data/
@@ -79,5 +79,35 @@ import { Card, CardGrid } from '@astrojs/starlight/components';
 		5 Perintah wajib alur kerja Terraform: `init` &rarr; `validate` &rarr; `plan` &rarr; `apply` &rarr; `destroy`.
 		<br/>
 		[Buka Catatan Terraform &rarr;](/terraform/01-commands-dan-workflow/)
+	</Card>
+	<Card title="🐘 PostgreSQL (5 Modul)" icon="seti:db">
+		Tipe data canggih, JSONB & GIN indexing, CTE recursive, Window functions, Transaksi ACID & Isolation Level, serta EXPLAIN ANALYZE tuning.
+		<br/>
+		[Buka Catatan PostgreSQL &rarr;](/postgresql/01-sintaks-dasar-dan-tipe-data/)
+	</Card>
+	<Card title="🐬 MySQL (4 Modul)" icon="seti:db">
+		InnoDB vs MyISAM, Clustered Index & Covering Index, Locking & Isolation Levels, serta Replikasi Master-Replica dan Vitess Sharding.
+		<br/>
+		[Buka Catatan MySQL &rarr;](/mysql/01-sintaks-dasar-dan-storage-engines/)
+	</Card>
+	<Card title="🔴 Redis (5 Modul)" icon="seti:redis">
+		8 Struktur Data lengkap, Pola Caching & TTL Eviction, Pub/Sub & Streams persisten, Transaksi MULTI/EXEC & Scripting Lua, serta Sentinel & Cluster.
+		<br/>
+		[Buka Catatan Redis &rarr;](/redis/01-data-structures-lengkap/)
+	</Card>
+	<Card title="🍃 MongoDB (4 Modul)" icon="seti:bicep">
+		BSON & CRUD operators, Indexing B-Tree & ESR Rule sakti, Aggregation Pipeline lengkap ($match, $group, $lookup, $facet), dan Transaksi ACID.
+		<br/>
+		[Buka Catatan MongoDB &rarr;](/mongodb/01-dokumen-dan-crud-dasar/)
+	</Card>
+	<Card title="📊 Google BigQuery (5 Modul)" icon="seti:chart">
+		Serverless Dremel compute & Capacitor storage, GoogleSQL analitik & klausa QUALIFY, Partisi & Clustering hemat 99% biaya, ARRAY/STRUCT, dan BQML.
+		<br/>
+		[Buka Catatan BigQuery &rarr;](/bigquery/01-arsitektur-dan-konsep-inti/)
+	</Card>
+	<Card title="⚡ Google Cloud Bigtable (4 Modul)" icon="seti:xml">
+		NoSQL Wide-Column sub-10ms latency, Desain Row Key leksikografis anti-hotspot, Server-side RowFilter pipeline, dan Garbage Collection policies.
+		<br/>
+		[Buka Catatan Bigtable &rarr;](/bigtable/01-arsitektur-dan-konsep-inti/)
 	</Card>
 </CardGrid>

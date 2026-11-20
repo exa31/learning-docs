@@ -1,6 +1,6 @@
 # 📚 Personal Dev Docs & Cheatsheets (Astro Starlight)
 
-Buku saku sintaks dan dokumentasi teknis pribadi harian berbasis **Astro Starlight** (`@astrojs/starlight: ^0.43.1`). Didesain khusus untuk mencari dan mengingat kembali konsep bahasa pemrograman & framework (JavaScript, TypeScript, Python, Golang, Rust, Dart, Kotlin, Jetpack Compose, Swift, Terraform) secara instan, to-the-point, dan aplikatif.
+Buku saku sintaks dan dokumentasi teknis pribadi harian berbasis **Astro Starlight** (`@astrojs/starlight: ^0.43.1`). Didesain khusus untuk mencari dan mengingat kembali konsep bahasa pemrograman, framework UI, cloud IaC, dan sistem database modern (JavaScript, TypeScript, Python, Golang, Rust, Dart, Kotlin, Swift, Flutter, Jetpack Compose, SwiftUI, Terraform, PostgreSQL, MySQL, Redis, MongoDB, BigQuery, Bigtable) secara instan, to-the-point, dan aplikatif.
 
 ---
 
@@ -20,7 +20,7 @@ Perintah lain:
 
 ---
 
-## 🧭 Peta Modul Dokumentasi Lengkap (12 Tech Stacks & Frameworks)
+## 🧭 Peta Modul Dokumentasi Lengkap (18 Tech Stacks & Databases)
 
 ### 🟡 [JavaScript (9 Modul)](file:///Users/macbookair/learning/src/content/docs/javascript/01-variables-dan-tipe-data.md)
 1. `01. Variabel & Tipe Data` (`const`, `let`, `var`, primitif vs reference, template literals, type casting).
@@ -112,6 +112,45 @@ Perintah lain:
 ### ☁️ [Terraform IaC (1 Modul)](file:///Users/macbookair/learning/src/content/docs/terraform/01-commands-dan-workflow.md)
 1. `01. Perintah Inti & Alur Kerja` (5 Perintah wajib: `init` $\to$ `validate` $\to$ `plan` $\to$ `apply` $\to$ `destroy`, `-auto-approve`, fungsi file `terraform.tfstate`).
 
+### 🐘 [PostgreSQL (5 Modul)](file:///Users/macbookair/learning/src/content/docs/postgresql/01-sintaks-dasar-dan-tipe-data.md)
+1. `01. Sintaks Dasar & Tipe Data` (`TEXT` vs `VARCHAR`, `TIMESTAMPTZ`, `UUID`, `BOOLEAN`, DDL/DML, `RETURNING`, `UPSERT ON CONFLICT`).
+2. `02. JSONB & Indexing Canggih` (`JSON` vs `JSONB`, operator `->`/`->>`/`@>`, B-Tree vs Hash vs GIN vs GiST vs BRIN, Partial & Expression Index).
+3. `03. Joins, Subqueries & CTE` (Inner/Left/Right/Full/Cross JOIN, CTE `WITH`, Recursive CTE hierarki parent-child, Window Functions `OVER()`).
+4. `04. Transaksi & Concurrency Control` (ACID, 4 Tingkat Isolasi ANSI, MVCC snapshot, Explicit Row-Level Locking `FOR UPDATE`).
+5. `05. Analisis Performa & Administrasi` (`EXPLAIN ANALYZE`, Sequential vs Index Scan, autovacuum & bloat, `pg_stat_statements`, connection pooling PgBouncer).
+
+### 🐬 [MySQL (4 Modul)](file:///Users/macbookair/learning/src/content/docs/mysql/01-sintaks-dasar-dan-storage-engines.md)
+1. `01. Sintaks Dasar & Storage Engines` (InnoDB vs MyISAM vs Memory, DDL/DML, `DATETIME` vs `TIMESTAMP`, strict mode `sql_mode`).
+2. `02. Indexing & Optimasi Query` (Clustered Primary Key vs Secondary Index B+Tree, Covering Index, `EXPLAIN` format JSON, index antipatterns).
+3. `03. Transaksi & Locking Mechanisms` (ACID, 4 Isolation Levels, Repeatable Read default via MVCC Undo Log, Shared/Exclusive Locks, Deadlock prevention).
+4. `04. Replikasi & Sharding` (Binlog ROW vs STATEMENT, Asynchronous vs Semi-synchronous replication, GTID failover, horizontal sharding Vitess).
+
+### 🔴 [Redis (5 Modul)](file:///Users/macbookair/learning/src/content/docs/redis/01-data-structures-lengkap.md)
+1. `01. Struktur Data Lengkap & Perintah` (8 Struktur data: Strings, Hashes, Lists, Sets, Sorted Sets, Bitmaps, HyperLogLog, Streams).
+2. `02. Pola Caching & TTL Eviction` (Cache-Aside, Write-Through, Write-Back, 8 Kebijakan Eviction `maxmemory-policy`, antisipasi Cache Stampede).
+3. `03. Pub/Sub & Redis Streams` (Pub/Sub ephemeral vs Redis Streams persisten, consumer groups `XREADGROUP`, acknowledgement `XACK`, claim pending `XAUTOCLAIM`).
+4. `04. Transaksi, Pipelining & Scripting Lua` (Pipelining RTT, `MULTI`/`EXEC`/`WATCH`, atomic Lua scripting `EVAL`/`EVALSHA`, distributed lock Redlock).
+5. `05. Persistensi, Sentinel & Clustering` (RDB vs AOF vs Hybrid, Redis Sentinel automated failover, Redis Cluster 16.384 hash slots).
+
+### 🍃 [MongoDB (4 Modul)](file:///Users/macbookair/learning/src/content/docs/mongodb/01-dokumen-dan-crud-dasar.md)
+1. `01. Dokumen, BSON & CRUD Dasar` (BSON vs JSON, anatomi 12-byte ObjectId, `insertOne`/`insertMany`, operator perbandingan & array, `$set`/`$inc`/`$push`).
+2. `02. Indexing & Analisis Performa` (Single/Compound index, aturan sakti ESR Equality-Sort-Range, Multikey, TTL index auto-delete, `explain("executionStats")`).
+3. `03. Aggregation Pipeline Lengkap` (Pipeline stages: `$match`, `$project`, `$group`, `$unwind`, `$lookup` SQL JOIN, `$facet` multi-query paginasi).
+4. `04. Transaksi ACID & Desain Skema` (Embedding vs Referencing, aturan anti-unbounded array 16MB, transaksi multi-dokumen `withTransaction`, Replica Set & Sharding).
+
+### 📊 [Google BigQuery (5 Modul)](file:///Users/macbookair/learning/src/content/docs/bigquery/01-arsitektur-dan-konsep-inti.md)
+1. `01. Arsitektur & Konsep Inti` (Pemisahan compute Dremel & storage Capacitor via Jupiter Network, hierarki Project/Dataset/Table, model billing On-Demand vs Editions).
+2. `02. SQL Analitik & Window Functions` (GoogleSQL, `ROW_NUMBER`/`LEAD`/`LAG`, klausa sakti `QUALIFY`, `SELECT * EXCEPT/REPLACE`, `APPROX_COUNT_DISTINCT`, UDF).
+3. `03. Partisi & Clustering` (Partitioned Tables by date/timestamp, partition pruning, Clustered Tables, kombinasi pangkas 99% biaya query).
+4. `04. Nested & Repeated Fields (STRUCT & ARRAY)` (Denormalisasi dokumen, `STRUCT` object & `ARRAY` list, pembongkaran dengan `UNNEST()`, `ARRAY_AGG()`).
+5. `05. Optimasi Biaya & Best Practices` (Aturan hemat biaya, `bq query --dry_run`, Materialized Views & smart rewriting, BI Engine cache, BigQuery ML).
+
+### ⚡ [Google Cloud Bigtable (4 Modul)](file:///Users/macbookair/learning/src/content/docs/bigtable/01-arsitektur-dan-konsep-inti.md)
+1. `01. Arsitektur & Model Data Inti` (NoSQL Wide-Column sub-10ms latency, Peta multidimensi terurut, Tablet servers & Colossus SSTables, auto-split).
+2. `02. Desain Row Key Sakti (Anti-Hotspot)` (Pengurutan leksikografis ASCII, bahaya hotspotting, delimiter `#`, salting, Reverse Timestamp untuk data sensor).
+3. `03. Operasi Read, Write & Filters` (Single row write `MutateRow`, batch `ApplyBulk`, range scan, server-side `RowFilter` pipeline, atomik `CheckAndMutate`).
+4. `04. Garbage Collection, Monitoring & Matriks Keputusan` (GC policies per family, Key Visualizer 2D heatmap diagnostik, matriks Bigtable vs BigQuery vs Spanner vs Firestore).
+
 ---
 
 ## 📂 Struktur Direktori Proyek
@@ -123,7 +162,7 @@ learning/
 ├── package.json                           # Scripts (dev, build, preview) & dependencies
 ├── astro.config.mjs                       # Konfigurasi Astro Starlight & autogenerate sidebar
 │
-├── src/content/docs/                      # 📖 Sumber Markdown Dokumentasi
+├── src/content/docs/                      # 📖 Sumber Markdown Dokumentasi (95 Modul)
 │   ├── index.md                           # Landing page portal
 │   ├── javascript/                        # 9 modul JS
 │   ├── typescript/                        # 5 modul TS
@@ -136,7 +175,13 @@ learning/
 │   ├── flutter/                           # 5 modul Flutter (Cross-Platform UI)
 │   ├── compose/                           # 6 modul Jetpack Compose (Android UI)
 │   ├── swiftui/                           # 5 modul SwiftUI (iOS & Apple UI)
-│   └── terraform/                         # 1 modul Terraform
+│   ├── terraform/                         # 1 modul Terraform (IaC)
+│   ├── postgresql/                        # 5 modul PostgreSQL
+│   ├── mysql/                             # 4 modul MySQL
+│   ├── redis/                             # 5 modul Redis
+│   ├── mongodb/                           # 4 modul MongoDB
+│   ├── bigquery/                          # 5 modul Google BigQuery
+│   └── bigtable/                          # 4 modul Google Cloud Bigtable
 │
 ├── javascript -> src/content/docs/javascript # Symlink cepat di root
 ├── typescript -> src/content/docs/typescript # Symlink cepat di root
@@ -149,5 +194,11 @@ learning/
 ├── flutter -> src/content/docs/flutter       # Symlink cepat di root
 ├── compose -> src/content/docs/compose       # Symlink cepat di root
 ├── swiftui -> src/content/docs/swiftui       # Symlink cepat di root
-└── terraform -> src/content/docs/terraform   # Symlink cepat di root
+├── terraform -> src/content/docs/terraform   # Symlink cepat di root
+├── postgresql -> src/content/docs/postgresql # Symlink cepat di root
+├── mysql -> src/content/docs/mysql           # Symlink cepat di root
+├── redis -> src/content/docs/redis           # Symlink cepat di root
+├── mongodb -> src/content/docs/mongodb       # Symlink cepat di root
+├── bigquery -> src/content/docs/bigquery     # Symlink cepat di root
+└── bigtable -> src/content/docs/bigtable     # Symlink cepat di root
 ```
