@@ -62,8 +62,12 @@ export default defineConfig({
           items: [{ autogenerate: { directory: 'dart' } }],
         },
         {
-          label: '🟣 Kotlin & Compose',
+          label: '🟣 Kotlin (Core)',
           items: [{ autogenerate: { directory: 'kotlin' } }],
+        },
+        {
+          label: '📱 Jetpack Compose (Android)',
+          items: [{ autogenerate: { directory: 'compose' } }],
         },
         {
           label: '🍏 Swift & SwiftUI',

@@ -1,6 +1,6 @@
 # 📚 Personal Dev Docs & Cheatsheets (Astro Starlight)
 
-Buku saku sintaks dan dokumentasi teknis pribadi harian berbasis **Astro Starlight** (`@astrojs/starlight: ^0.43.1`). Didesain khusus untuk mencari dan mengingat kembali konsep bahasa pemrograman (JavaScript, TypeScript, Python, Golang, Rust, Dart, Kotlin, Swift, Terraform) secara instan, to-the-point, dan aplikatif.
+Buku saku sintaks dan dokumentasi teknis pribadi harian berbasis **Astro Starlight** (`@astrojs/starlight: ^0.43.1`). Didesain khusus untuk mencari dan mengingat kembali konsep bahasa pemrograman & framework (JavaScript, TypeScript, Python, Golang, Rust, Dart, Kotlin, Jetpack Compose, Swift, Terraform) secara instan, to-the-point, dan aplikatif.
 
 ---
 
@@ -20,7 +20,7 @@ Perintah lain:
 
 ---
 
-## 🧭 Peta Modul Dokumentasi Lengkap (9 Tech Stacks)
+## 🧭 Peta Modul Dokumentasi Lengkap (10 Tech Stacks & Frameworks)
 
 ### 🟡 [JavaScript (9 Modul)](file:///Users/macbookair/learning/src/content/docs/javascript/01-variables-dan-tipe-data.md)
 1. `01. Variabel & Tipe Data` (`const`, `let`, `var`, primitif vs reference, template literals, type casting).
@@ -70,7 +70,7 @@ Perintah lain:
 4. `04. OOP, Mixin & Extension` (Constructor `this.prop`, named constructor, mixin `with`, extension methods).
 5. `05. Async, Stream & Fitur Dart 3` (`Future`, `Stream` reaktif, Records tuple Dart 3, switch expression).
 
-### 🟣 [Kotlin & Jetpack Compose (8 Modul)](file:///Users/macbookair/learning/src/content/docs/kotlin/01-sintaks-dasar-dan-tipe-data.md)
+### 🟣 [Kotlin (7 Modul)](file:///Users/macbookair/learning/src/content/docs/kotlin/01-sintaks-dasar-dan-tipe-data.md)
 1. `01. Sintaks Dasar & Tipe Data` (`val` vs `var`, `Unit` vs `Nothing`, string template `${ekspresi}`, multiline `"""`, Smart Cast `is`, safe cast `as?`, looping range).
 2. `02. Null Safety & Operator Khusus` (Sound Null Safety `?`, Safe call `?.`, Elvis `?:` untuk fallback & early return, bahaya `!!`, `filterNotNull()`, safe unwrapping `?.let`).
 3. `03. Fitur Fungsi & Lambdas` (Single expression, default & named arguments, `vararg` & spread `*`, extension functions, `infix`, `tailrec`, trailing lambda & `it`, `inline fun`).
@@ -78,7 +78,14 @@ Perintah lain:
 5. `05. OOP, Data Class, & Delegasi` (Primary constructor, `lateinit var`, `data class` & `.copy()`, singleton `object` & `companion`, `sealed class`/`sealed interface` exhaustive `when`, properti delegasi `by lazy`).
 6. `06. Cheatsheet Scope Functions` (Matriks 5 fungsi: `apply`, `also`, `let`, `run`, `with`, perbedaan `this` vs `it`, context object vs lambda result, rumus cepat pemilih).
 7. `07. Coroutines & Flow` (`suspend fun`, `Dispatchers` Main/IO/Default, `withContext`, `launch` vs `async`/`await`, `supervisorScope`, Reactive Cold Stream `Flow`, `StateFlow` vs `SharedFlow`).
-8. `08. Jetpack Compose & Arsitektur (Gaya GetX)` (Kamus GetX $\to$ Compose, Recomposition, `_private MutableStateFlow` vs `public StateFlow`, `remember` vs `rememberSaveable`, layout `Column`/`Row`/`LazyColumn`, struktur Clean Architecture).
+
+### 📱 [Jetpack Compose (6 Modul)](file:///Users/macbookair/learning/src/content/docs/compose/01-mental-model-dan-recomposition.md)
+1. `01. Mental Model & Recomposition` (Kamus padanan GetX $\to$ Compose, deklaratif `UI = f(State)`, Recomposition skipping, `remember` vs `rememberSaveable`).
+2. `02. State Management & ViewModel` (Unidirectional Data Flow UDF & State Hoisting, `_private MutableStateFlow` vs `public StateFlow`, `collectAsStateWithLifecycle()`, `sealed interface UiState`).
+3. `03. Layouts & Modifiers` (Container `Column`/`Row`/`Box`/`Scaffold`, hukum urutan modifier chaining, Alignment vs Arrangement, `Spacer` & `weight`).
+4. `04. Lazy Layouts & Lists` (Pengganti RecyclerView: `LazyColumn`/`LazyRow`/`LazyVerticalGrid`, stable key `items(key = ...)`, sticky headers, pagination infinite scroll).
+5. `05. Side Effects & Lifecycle` (Kapan butuh effect, `LaunchedEffect`, `rememberCoroutineScope`, `DisposableEffect`, handling one-off events Snackbar & navigasi).
+6. `06. Navigation & Arsitektur` (Compose Navigation modern `NavHost`, argument passing, type-safe navigation, DI Koin/Hilt, arsitektur Clean Architecture presentation layer).
 
 ### 🍏 [Swift & SwiftUI (6 Modul)](file:///Users/macbookair/learning/src/content/docs/swift/01-sintaks-dasar-dan-optionals.md)
 1. `01. Sintaks Dasar & Optionals` (`let` vs `var`, string interpolation, Optional `?`, unwrapping via `guard let`, `if let`, nil-coalescing `??`).
@@ -110,7 +117,8 @@ learning/
 │   ├── golang/                            # 6 modul Go
 │   ├── rust/                              # 6 modul Rust
 │   ├── dart/                              # 5 modul Dart
-│   ├── kotlin/                            # 8 modul Kotlin
+│   ├── kotlin/                            # 7 modul Kotlin (Core)
+│   ├── compose/                           # 6 modul Jetpack Compose (Android UI)
 │   ├── swift/                             # 6 modul Swift & SwiftUI
 │   └── terraform/                         # 1 modul Terraform
 │
@@ -121,6 +129,7 @@ learning/
 ├── rust -> src/content/docs/rust             # Symlink cepat di root
 ├── dart -> src/content/docs/dart             # Symlink cepat di root
 ├── kotlin -> src/content/docs/kotlin         # Symlink cepat di root
+├── compose -> src/content/docs/compose       # Symlink cepat di root
 ├── swift -> src/content/docs/swift           # Symlink cepat di root
 └── terraform -> src/content/docs/terraform   # Symlink cepat di root
 ```
