@@ -7,6 +7,35 @@ export default defineConfig({
     starlight({
       title: 'Dev Cheatsheets 📖',
       description: 'Catatan & cheatsheet sintaks praktis pribadi lintas tech-stack',
+      favicon: '/favicon.svg',
+      logo: {
+        src: './src/assets/logo.svg',
+        replacesTitle: false,
+      },
+      head: [
+        {
+          tag: 'link',
+          attrs: {
+            rel: 'icon',
+            href: '/favicon.svg',
+            type: 'image/svg+xml',
+          },
+        },
+        {
+          tag: 'link',
+          attrs: {
+            rel: 'alternate icon',
+            href: '/favicon.ico',
+          },
+        },
+        {
+          tag: 'link',
+          attrs: {
+            rel: 'apple-touch-icon',
+            href: '/favicon.png',
+          },
+        },
+      ],
       sidebar: [
         {
           label: '🟡 JavaScript',
