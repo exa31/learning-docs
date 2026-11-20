@@ -3,7 +3,7 @@ title: Personal Dev Docs 📖
 description: Catatan sintaks praktis, cheatsheet, dan pengingat teknologi harian dengan bahasa santai to-the-point.
 template: splash
 hero:
-  tagline: Dokumentasi & cheatsheet masterclass produksi personal untuk 8 Bahasa Pemrograman, 3 UI Frameworks, Terraform IaC, dan 6 Database Modern (PostgreSQL, MySQL, Redis, MongoDB, BigQuery, Bigtable). Lengkap, mendalam, tanpa kulit-kulit doang.
+  tagline: Dokumentasi & cheatsheet masterclass produksi personal untuk 9 Bahasa Pemrograman (termasuk PHP Modern), 3 UI Frameworks, Terraform IaC, dan 6 Database Modern (PostgreSQL, MySQL, Redis, MongoDB, BigQuery, Bigtable). Lengkap, mendalam, tanpa kulit-kulit doang.
   actions:
     - text: Mulai dari JavaScript
       link: /javascript/01-variables-dan-tipe-data/
@@ -34,6 +34,11 @@ import { Card, CardGrid } from '@astrojs/starlight/components';
 		Mutability & Reference Semantics, Walrus Operator & Pattern Matching, Positional/Keyword Delimiters (/, *), Dunder Methods & Descriptors, @dataclass slots & Pydantic V2, Generators & Context Managers, Concurrency GIL/Threading/Multiprocessing, Asyncio TaskGroup, Memory PyMalloc & Cyclic GC, serta Protocols & uv/ruff.
 		<br/>
 		[Buka Catatan Python &rarr;](/python/01-sintaks-dasar-tipe-data-dan-mutability/)
+	</Card>
+	<Card title="🐘 PHP (10 Modul Lengkap)" icon="seti:php">
+		Strict types & Modern Type System (Union, Intersection, DNF), Match expression vs Switch, Named args & First-class callables, Constructor Promotion & Readonly class, First-Class Enums & Traits, Native Attributes & IoC Container Reflection, Zend HashTable internals & Fluent Collections, Composer PSR-4 & classmap-authoritative, PDO ACID & Web Security (Argon2id/CSRF), serta OPcache Preloading, JIT Tracing & FrankenPHP.
+		<br/>
+		[Buka Catatan PHP &rarr;](/php/01-sintaks-dasar-tipe-data-dan-modern-syntax/)
 	</Card>
 	<Card title="🐹 Golang (10 Modul Lengkap)" icon="seti:go">
 		Sintaks & Mutability, Tagless & Type Switch, Slice 3-word header & Map memory, Pointer & Escape Analysis (-gcflags="-m"), Struct Method Sets & iface/eface internals, GMP Scheduler & Work Stealing, Channel hchan circular buffer & Worker Pools, Sync Primitives & Atomic, Context Tree & Graceful Shutdown, serta Generics & pprof profiling.

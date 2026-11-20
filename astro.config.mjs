@@ -50,6 +50,10 @@ export default defineConfig({
           items: [{ autogenerate: { directory: 'python' } }],
         },
         {
+          label: '🐘 PHP (Modern 8.x)',
+          items: [{ autogenerate: { directory: 'php' } }],
+        },
+        {
           label: '🐹 Golang',
           items: [{ autogenerate: { directory: 'golang' } }],
         },

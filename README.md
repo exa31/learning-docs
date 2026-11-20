@@ -1,6 +1,6 @@
 # 📚 Personal Dev Docs & Cheatsheets (Astro Starlight)
 
-Buku saku sintaks dan dokumentasi teknis pribadi harian berbasis **Astro Starlight** (`@astrojs/starlight: ^0.43.1`). Didesain khusus untuk mencari dan mengingat kembali konsep bahasa pemrograman, framework UI, cloud IaC, dan sistem database modern (JavaScript, TypeScript, Python, Golang, Rust, Dart, Kotlin, Swift, Flutter, Jetpack Compose, SwiftUI, Terraform, PostgreSQL, MySQL, Redis, MongoDB, BigQuery, Bigtable) secara instan, to-the-point, dan aplikatif.
+Buku saku sintaks dan dokumentasi teknis pribadi harian berbasis **Astro Starlight** (`@astrojs/starlight: ^0.43.1`). Didesain khusus untuk mencari dan mengingat kembali konsep bahasa pemrograman, framework UI, cloud IaC, dan sistem database modern (JavaScript, TypeScript, Python, PHP, Golang, Rust, Dart, Kotlin, Swift, Flutter, Jetpack Compose, SwiftUI, Terraform, PostgreSQL, MySQL, Redis, MongoDB, BigQuery, Bigtable) secara instan, to-the-point, dan aplikatif.
 
 ---
 
@@ -15,12 +15,12 @@ npm run dev
 ```
 
 Perintah lain:
-- `npm run build`: Kompilasi static site ke `dist/` (154 halaman + Pagefind search index).
+- `npm run build`: Kompilasi static site ke `dist/` (164 halaman + Pagefind search index).
 - `npm run preview`: Preview lokal hasil build produksi.
 
 ---
 
-## 🧭 Peta Modul Dokumentasi Lengkap (18 Tech Stacks & Databases — 152 Modul)
+## 🧭 Peta Modul Dokumentasi Lengkap (19 Tech Stacks & Databases — 162 Modul)
 
 ### 🟡 [JavaScript (9 Modul)](file:///Users/macbookair/learning/src/content/docs/javascript/01-variables-dan-tipe-data.md)
 1. `01. Variabel & Tipe Data` (`const`, `let`, `var`, primitif vs reference, template literals, type casting).
@@ -56,6 +56,18 @@ Perintah lain:
 8. `08. Asyncio: Event Loop, TaskGroup & Networking` (Event loop, `async`/`await`, Python 3.11+ `TaskGroup`, `asyncio.gather`, aiohttp client).
 9. `09. Memory Management & Garbage Collection` (CPython reference counting, cyclic garbage collector `gc`, memory leaks & `sys.getrefcount`).
 10. `10. Metaclasses, Protocols (Structural Typing) & Modern Tooling` (`type` metaclass, `typing.Protocol` duck typing, modern tooling uv/ruff/mypy).
+
+### 🐘 [PHP (10 Modul Masterclass)](file:///Users/macbookair/learning/src/content/docs/php/01-sintaks-dasar-tipe-data-dan-modern-syntax.md)
+1. `01. Sintaks Dasar, Type System Modern & Operator PHP 8.x` (`strict_types=1`, Union/Intersection/DNF types, type juggling traps, spaceship `<=>`, nullsafe `?->`, `??=`).
+2. `02. Control Flow, Match Expression & Error Handling Modern` (`match` expression vs `switch`, jebakan `foreach` by-reference, `Throwable` hierarchy, multi-catch).
+3. `03. Fungsi, Closures, Arrow Functions & Generators` (Named arguments, first-class callables `f(...)`, variadic `...`, closures `use`, memory streaming `yield`).
+4. `04. OOP Modern: Constructor Promotion, Readonly & Magic Methods` (Constructor property promotion, `readonly class`, typed constants, `final`, 12 magic methods).
+5. `05. Traits, Interfaces & First-Class Enums (PHP 8.1+)` (Multiple interfaces, trait collision `insteadof`/`as`, Pure vs Backed Enums, enum methods & pattern matching).
+6. `06. Attributes, Reflection API & Dependency Injection Container` (Native `#[Attribute]`, runtime Reflection inspection, pembuatan IoC Container auto-wiring dari nol).
+7. `07. Array Internals (Zend HashTable) & Modern Collections` (Zend HashTable C struct, array destructuring, spread `...` string keys, cheatsheet fungsi array, Fluent Collection).
+8. `08. Composer, Autoloading PSR-4 & Standar PSR Modern` (Composer SemVer, PSR-4 autoloader, PSR-7/PSR-15 middleware pipeline, `composer dump-autoload --classmap-authoritative`).
+9. `09. Database PDO, Transaksi ACID & Web Security Wajib` (PDO native prepared statements, transaksi ACID, XSS protection, CSRF `hash_equals`, password hashing Argon2id, secure cookies).
+10. `10. OPcache, JIT Compiler, PHP-FPM & Modern Runtimes` (Zend VM lifecycle, OPcache tuning & preloading, JIT Tracing, PHP-FPM static pooling, FrankenPHP worker mode).
 
 ### 🐹 [Golang (10 Modul Masterclass)](file:///Users/macbookair/learning/src/content/docs/golang/01-sintaks-dasar-dan-tipe-data.md)
 1. `01. Sintaks Dasar, Variabel & Tipe Data` (`package main`, `var` vs `:=`, zero values, `iota`, custom types).
@@ -221,11 +233,12 @@ learning/
 ├── package.json                           # Scripts (dev, build, preview) & dependencies
 ├── astro.config.mjs                       # Konfigurasi Astro Starlight & autogenerate sidebar
 │
-├── src/content/docs/                      # 📖 Sumber Markdown Dokumentasi (152 Modul)
+├── src/content/docs/                      # 📖 Sumber Markdown Dokumentasi (162 Modul)
 │   ├── index.md                           # Landing page portal
 │   ├── javascript/                        # 9 modul JS
 │   ├── typescript/                        # 10 modul TS (Masterclass)
 │   ├── python/                            # 10 modul Python (Masterclass)
+│   ├── php/                               # 10 modul PHP (Masterclass)
 │   ├── golang/                            # 10 modul Go (Masterclass)
 │   ├── rust/                              # 10 modul Rust (Masterclass)
 │   ├── dart/                              # 8 modul Dart (Masterclass)
@@ -245,6 +258,7 @@ learning/
 ├── javascript -> src/content/docs/javascript # Symlink cepat di root
 ├── typescript -> src/content/docs/typescript # Symlink cepat di root
 ├── python -> src/content/docs/python         # Symlink cepat di root
+├── php -> src/content/docs/php               # Symlink cepat di root
 ├── golang -> src/content/docs/golang         # Symlink cepat di root
 ├── rust -> src/content/docs/rust             # Symlink cepat di root
 ├── dart -> src/content/docs/dart             # Symlink cepat di root
