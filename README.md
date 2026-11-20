@@ -70,10 +70,15 @@ Perintah lain:
 4. `04. OOP, Mixin & Extension` (Constructor `this.prop`, named constructor, mixin `with`, extension methods).
 5. `05. Async, Stream & Fitur Dart 3` (`Future`, `Stream` reaktif, Records tuple Dart 3, switch expression).
 
-### 🟣 [Kotlin & Jetpack Compose (3 Modul)](file:///Users/macbookair/learning/src/content/docs/kotlin/01-syntax-dasar-dan-fungsi.md)
-1. `01. Sintaks Dasar & Fitur Fungsi` (`Unit`, single-expression, `vararg`, extension function + `$this`, `infix`, `tailrec`, lambda & `it`, `inline fun`, `suspend fun`).
-2. `02. OOP & Class Features` (`lateinit var`, `data class` + `.copy()`, destructuring, singleton `object` vs `companion object`, delegation `by`, `by lazy`, observable properties).
-3. `03. Jetpack Compose & Arsitektur (Gaya GetX)` (Kamus GetX $\to$ Compose, Recomposition, `_private MutableStateFlow` vs `public StateFlow`, layout `Column`/`Row`/`Box`/`LazyColumn`, struktur Clean Architecture).
+### 🟣 [Kotlin & Jetpack Compose (8 Modul)](file:///Users/macbookair/learning/src/content/docs/kotlin/01-sintaks-dasar-dan-tipe-data.md)
+1. `01. Sintaks Dasar & Tipe Data` (`val` vs `var`, `Unit` vs `Nothing`, string template `${ekspresi}`, multiline `"""`, Smart Cast `is`, safe cast `as?`, looping range).
+2. `02. Null Safety & Operator Khusus` (Sound Null Safety `?`, Safe call `?.`, Elvis `?:` untuk fallback & early return, bahaya `!!`, `filterNotNull()`, safe unwrapping `?.let`).
+3. `03. Fitur Fungsi & Lambdas` (Single expression, default & named arguments, `vararg` & spread `*`, extension functions, `infix`, `tailrec`, trailing lambda & `it`, `inline fun`).
+4. `04. Koleksi & Sequence` (List/Set/Map read-only vs mutable, transformasi `map`/`filter`/`flatMap`/`partition`, `groupBy` & `associateBy`, `sumOf`/`fold`, optimasi lazy `Sequence`).
+5. `05. OOP, Data Class, & Delegasi` (Primary constructor, `lateinit var`, `data class` & `.copy()`, singleton `object` & `companion`, `sealed class`/`sealed interface` exhaustive `when`, properti delegasi `by lazy`).
+6. `06. Cheatsheet Scope Functions` (Matriks 5 fungsi: `apply`, `also`, `let`, `run`, `with`, perbedaan `this` vs `it`, context object vs lambda result, rumus cepat pemilih).
+7. `07. Coroutines & Flow` (`suspend fun`, `Dispatchers` Main/IO/Default, `withContext`, `launch` vs `async`/`await`, `supervisorScope`, Reactive Cold Stream `Flow`, `StateFlow` vs `SharedFlow`).
+8. `08. Jetpack Compose & Arsitektur (Gaya GetX)` (Kamus GetX $\to$ Compose, Recomposition, `_private MutableStateFlow` vs `public StateFlow`, `remember` vs `rememberSaveable`, layout `Column`/`Row`/`LazyColumn`, struktur Clean Architecture).
 
 ### 🍏 [Swift & SwiftUI (6 Modul)](file:///Users/macbookair/learning/src/content/docs/swift/01-sintaks-dasar-dan-optionals.md)
 1. `01. Sintaks Dasar & Optionals` (`let` vs `var`, string interpolation, Optional `?`, unwrapping via `guard let`, `if let`, nil-coalescing `??`).
@@ -105,7 +110,7 @@ learning/
 │   ├── golang/                            # 6 modul Go
 │   ├── rust/                              # 6 modul Rust
 │   ├── dart/                              # 5 modul Dart
-│   ├── kotlin/                            # 3 modul Kotlin
+│   ├── kotlin/                            # 8 modul Kotlin
 │   ├── swift/                             # 6 modul Swift & SwiftUI
 │   └── terraform/                         # 1 modul Terraform
 │

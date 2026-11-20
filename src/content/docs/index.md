@@ -50,10 +50,10 @@ import { Card, CardGrid } from '@astrojs/starlight/components';
 		<br/>
 		[Buka Catatan Dart &rarr;](/dart/01-sintaks-dasar-dan-null-safety/)
 	</Card>
-	<Card title="🟣 Kotlin & Jetpack Compose (3 Modul)" icon="seti:kotlin">
-		Sintaks andalan (extension, infix, tailrec, lambda, inline fun), OOP (data class, singleton, by lazy), dan **Compose mental model GetX**.
+	<Card title="🟣 Kotlin & Jetpack Compose (8 Modul)" icon="seti:kotlin">
+		Sintaks dasar, Sound Null Safety (`?.`, `?:`), Lambdas & Infix, Koleksi & Sequence, OOP Data Class & Delegasi, 5 Scope Functions, Coroutines & Flow, dan **Jetpack Compose (Gaya GetX)**.
 		<br/>
-		[Buka Catatan Kotlin &rarr;](/kotlin/01-syntax-dasar-dan-fungsi/)
+		[Buka Catatan Kotlin &rarr;](/kotlin/01-sintaks-dasar-dan-tipe-data/)
 	</Card>
 	<Card title="🍏 Swift & SwiftUI (6 Modul)" icon="apple">
 		Optionals (`guard let`, `if let`), Value vs Reference (Struct vs Class), Enums Associated Values, Extensions, Async/Await, dan **SwiftUI State**.
