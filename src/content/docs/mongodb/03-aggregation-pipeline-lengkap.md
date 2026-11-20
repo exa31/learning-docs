@@ -1,127 +1,307 @@
 ---
-title: "03. Aggregation Pipeline Lengkap ($lookup, $unwind & $facet)"
-description: Konsep Unix Pipeline di MongoDB, $match, $group, $unwind array deconstruction, $lookup SQL JOIN, dan paginasi simultan $facet.
+title: "03. Aggregation Pipeline Lengkap ($lookup, $graphLookup & $setWindowFields)"
+description: "Pipa Unix pengolahan data, $lookup correlated subqueries, $graphLookup hierarki pohon, Window Functions $setWindowFields, $facet paginasi, dan $merge."
 ---
 
-# 🍃 MongoDB - Modul 03: Aggregation Pipeline Lengkap ($lookup, $unwind & $facet)
+# 🍃 MongoDB - Modul 03: Aggregation Pipeline Lengkap ($lookup, $graphLookup & $setWindowFields)
 
-Jika operasi `find()` hanya cocok untuk pencarian sederhana, **Aggregation Pipeline** adalah mesin pengolahan data analitik MongoDB yang memproses dokumen melalui serangkaian tahapan (*stages*) seperti pipa Unix (`data | stage1 | stage2 | result`).
+Jika query `find()` dirancang untuk pencarian dokumen tunggal atau sederhana, **Aggregation Pipeline** adalah mesin analitik dan transformasi data tingkat lanjut di MongoDB yang memproses dokumen secara bertahap layaknya pipa Unix (`data | stage1 | stage2 | result`).
 
 ---
 
-## 1. Konsep Pipa Pemrosesan (Stages Flow)
+## 1. Arsitektur Pipeline & Engine Eksekusi (SBE vs Classic)
 
-Setiap tahapan menerima dokumen masukan, melakukan transformasi, dan meneruskan dokumen hasil ke tahapan berikutnya:
+Setiap tahapan (*stage*) menerima kumpulan dokumen masukan, melakukan komputasi atau restrukturisasi, lalu mengalirkan hasilnya ke tahapan berikutnya:
 
 ```mermaid
 flowchart LR
-    Collection["Raw Collection"] --> StageMatch["$match\n(Filter Index)"]
-    StageMatch --> StageUnwind["$unwind\n(Pecah Array)"]
-    StageUnwind --> StageGroup["$group\n(Hitung Total/Avg)"]
-    StageGroup --> StageSort["$sort & $limit"]
-    StageSort --> FinalResult["Laporan Analitik"]
+    Collection["Raw Collection"] --> S1["$match\n(Filter B-Tree Index)"]
+    S1 --> S2["$unwind\n(Pecah Array)"]
+    S2 --> S3["$group\n(Agregasi/Akumulator)"]
+    S3 --> S4["$lookup\n(Join Koleksi Lain)"]
+    S4 --> S5["$project / $set\n(Format DTO)"]
+    S5 --> Output["Hasil Analitik"]
 ```
 
-> [!TIP]
-> **Aturan Optimasi**: Letakkan `$match` dan `$sort` **di tahap paling awal (Stage 1 & 2)** agar MongoDB bisa memanfaatkan B-Tree index dan memangkas jumlah dokumen sebelum masuk ke memori agregasi!
+> [!IMPORTANT]
+> **Aturan 100 MB RAM & `allowDiskUse`**:
+> Setiap stage agregasi memiliki batas memori internal sebesar **100 MB RAM**. Jika stage blocking seperti `$sort` atau `$group` melebihi 100MB tanpa dukungan index, query akan throw error `QueryExceededMemoryLimitNoDiskUseAllowed`.
+> Solusinya: Aktifkan opsi `{ allowDiskUse: true }` untuk mengizinkan MongoDB menulis data sementara ke disk, atau optimalkan tahap awal dengan `$match` ber-index.
 
 ---
 
-## 2. Bedah Kasus Produksi: Analisis Omset Penjualan per Kategori
+## 2. Bedah Kasus Produksi: Analisis Metrik E-Commerce
 
 ```javascript
 db.transaksi.aggregate([
-    // Stage 1: Filter transaksi yang sudah lunas dalam 30 hari terakhir
+    // Stage 1: Pangkas data di awal menggunakan B-Tree index!
     {
         $match: {
             status: "SELESAI",
-            tanggal: { $gte: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000) }
+            tanggal: { $gte: new Date("2026-01-01") }
         }
     },
 
-    // Stage 2: Pecah array 'items' agar setiap produk menjadi baris dokumen terpisah
+    // Stage 2: Pecah array 'items' menjadi baris terpisah
     {
-        $unwind: "$items"
+        $unwind: {
+            path: "$items",
+            preserveNullAndEmptyArrays: false // Abaikan transaksi kosong
+        }
     },
 
-    // Stage 3: Kelompokkan berdasarkan kategori produk dan hitung metrik bisnis
+    // Stage 3: Hitung akumulasi omset dan kuantitas per kategori
     {
         $group: {
-            _id: "$items.kategori", // Grouping Key
+            _id: "$items.kategori",
             total_omset: { $sum: { $multiply: ["$items.harga", "$items.qty"] } },
-            total_terjual: { $sum: "$items.qty" },
+            total_qty: { $sum: "$items.qty" },
             rata_rata_harga: { $avg: "$items.harga" },
-            daftar_produk: { $addToSet: "$items.nama" } // Himpunan produk unik
+            produk_unik: { $addToSet: "$items.nama" } // Himpunan produk unik (Set)
         }
     },
 
-    // Stage 4: Urutkan dari kategori omset tertinggi
+    // Stage 4: Urutkan kategori dengan omset terbesar
     {
         $sort: { total_omset: -1 }
     },
 
-    // Stage 5: Format ulang nama field keluaran agar rapi untuk Frontend DTO
+    // Stage 5: Format ulang field keluaran
     {
         $project: {
             _id: 0,
             kategori: "$_id",
             total_omset: 1,
-            total_terjual: 1,
-            rata_rata_harga: { $round: ["$rata_rata_harga", 2] }
+            total_qty: 1,
+            rata_rata_harga: { $round: ["$rata_rata_harga", 2] },
+            jumlah_varian_produk: { $size: "$produk_unik" }
         }
     }
-]);
+], { allowDiskUse: true });
 ```
 
 ---
 
-## 3. SQL JOIN di MongoDB: `$lookup`
+## 3. SQL JOIN di MongoDB: `$lookup` Tingkat Lanjut
 
-Meskipun NoSQL mengutamakan denormalisasi, terkadang kita tetap perlu menggabungkan dua koleksi terpisah:
-
+### A. Basic Equality Match (Simple JOIN)
 ```javascript
 db.pesanan.aggregate([
     {
         $lookup: {
-            from: "pengguna",             // Koleksi target tujuan JOIN
-            localField: "customer_id",     // Kolom referensi di tabel pesanan
-            foreignField: "_id",          // Kolom primary key di tabel pengguna
-            as: "info_customer"           // Output disimpan sebagai array
+            from: "pelanggan",
+            localField: "customer_id",
+            foreignField: "_id",
+            as: "customer"
         }
     },
-    // Ubah array 1 elemen menjadi objek tunggal datar:
+    // Mengubah array 1 elemen menjadi objek datar tunggal:
+    { $unwind: "$customer" }
+]);
+```
+
+### B. Correlated Subqueries dengan `let` dan `pipeline` (Advanced JOIN)
+Bisa memfilter, mengurutkan, dan membatasi data di koleksi target **SEBELUM** di-join (sangat hemat memori):
+
+```javascript
+// Mengambil data pengguna beserta 3 transaksi terakhirnya yang bernilai > Rp 100.000:
+db.pengguna.aggregate([
     {
-        $unwind: "$info_customer"
+        $lookup: {
+            from: "transaksi",
+            let: { user_id: "$_id" }, // Definisikan variabel dari koleksi pengguna
+            pipeline: [
+                {
+                    $match: {
+                        $expr: {
+                            $and: [
+                                { $eq: ["$customer_id", "$$user_id"] }, // Cocokkan variabel
+                                { $gt: ["$total", 100000] }
+                            ]
+                        }
+                    }
+                },
+                { $sort: { tanggal: -1 } },
+                { $limit: 3 },
+                { $project: { _id: 1, total: 1, tanggal: 1 } }
+            ],
+            as: "transaksi_terbaru"
+        }
     }
 ]);
 ```
 
 ---
 
-## 4. Trik Sakti: Paginasi Sempurna Sekali Eksekusi via `$facet`
+## 4. Query Hierarkis / Rekursif: `$graphLookup`
 
-Masalah klasik paginasi di backend: Kamu harus menjalankan **2 kali query terpisah** (Query 1: `count()` untuk total halaman, Query 2: `find().skip().limit()` untuk datanya).
+Menggantikan recursive CTE di SQL untuk membaca struktur pohon (organisasi atasan-bawahan, kategori berjenjang, jaringan pertemanan):
 
-Stage **`$facet`** menjalankan **kedua operasi tersebut secara paralel dalam 1 kali round-trip jaringan**:
+```mermaid
+flowchart TD
+    CEO["Direktur Utama (CEO)"] --> CTO["CTO"]
+    CEO --> CFO["CFO"]
+    CTO --> VP["VP of Engineering"]
+    VP --> Lead["Tech Lead"]
+    Lead --> Dev["Senior Developer"]
+```
+
+```javascript
+// Menelusuri seluruh jalur atasan dari seorang karyawan sampai ke CEO:
+db.karyawan.aggregate([
+    { $match: { email: "eka@dev.cloud" } },
+    {
+        $graphLookup: {
+            from: "karyawan",
+            startWith: "$manager_id",         // Titik awal traversal rekursif
+            connectFromField: "manager_id",   // Field referensi induk
+            connectToField: "_id",            // Target pencocokan
+            as: "hirarki_atasan",             // Output array seluruh leluhur
+            maxDepth: 5,                      // Batas kedalaman rekursi (Anti Infinite Loop)
+            depthField: "tingkat_jabatan"      // Menyimpan kedalaman level (0, 1, 2, dst)
+        }
+    }
+]);
+```
+
+---
+
+## 5. Modern Window Functions: `$setWindowFields` (MongoDB 5.0+)
+
+MongoDB 5.0+ memperkenalkan kapabilitas analitik analitis setara fungsi jendela SQL (`ROW_NUMBER()`, `DENSE_RANK()`, `LEAD()`, `LAG()`, Running Total):
+
+```javascript
+db.penjualan_harian.aggregate([
+    {
+        $setWindowFields: {
+            partitionBy: "$wilayah", // PARTITION BY wilayah
+            sortBy: { tanggal: 1 },  // ORDER BY tanggal ASC
+            output: {
+                // 1. Menghitung Running Total kumulatif penjualan:
+                kumulatif_omset: {
+                    $sum: "$nominal",
+                    window: { documents: ["unbounded", "current"] }
+                },
+                // 2. Ranking penjualan harian dalam wilayah tersebut:
+                ranking_harian: {
+                    $denseRank: {}
+                },
+                // 3. Mengambil nilai penjualan hari sebelumnya (setara SQL LAG):
+                omset_kemarin: {
+                    $shift: {
+                        output: "$nominal",
+                        by: -1,
+                        default: 0
+                    }
+                }
+            }
+        }
+    }
+]);
+```
+
+---
+
+## 6. Paginasi & Multi-Facet Sekaligus via `$facet`
+
+Menghindari masalah mengeksekusi 2 query backend terpisah (Query 1: `countDocuments`, Query 2: `find.skip.limit`). Dengan `$facet`, seluruh kebutuhan halaman diselesaikan dalam **1 kali round-trip**:
 
 ```javascript
 db.produk.aggregate([
-    { $match: { kategori: "Elektronik" } },
+    { $match: { status: "PUBLISH", kategori: "Elektronik" } },
     {
         $facet: {
-            // Pipa Cabang A: Menghitung total seluruh dokumen yang cocok
-            "total_count": [
-                { $count: "total" }
+            // Pipa Cabang 1: Hitung total dokumen
+            "metadata": [
+                { $count: "total_data" }
             ],
-            // Pipa Cabang B: Mengambil 10 data untuk halaman ke-2 (Skip 10)
-            "data_halaman": [
+            // Pipa Cabang 2: Ambil data halaman aktif
+            "data": [
                 { $sort: { created_at: -1 } },
-                { $skip: 10 },
+                { $skip: 20 },
                 { $limit: 10 },
-                { $project: { nama: 1, harga: 1 } }
+                { $project: { nama: 1, harga: 1, stok: 1 } }
+            ],
+            // Pipa Cabang 3: Distribusi rentang harga (Histogram Facet)
+            "distribusi_harga": [
+                {
+                    $bucket: {
+                        groupBy: "$harga",
+                        boundaries: [0, 500000, 2000000, 10000000, 50000000],
+                        default: "Di Atas 50 Juta",
+                        output: { count: { $sum: 1 } }
+                    }
+                }
             ]
         }
     }
 ]);
 ```
-Hasil kembalian langsung berisi `{ total_count: [{ total: 145 }], data_halaman: [...] }` dalam 1 panggilan instan!
+
+---
+
+## 7. Array Expression Operators (`$filter`, `$map`, `$reduce`)
+
+Memproses array tanpa perlu membongkarnya dengan `$unwind` (sangat menghemat CPU dan RAM):
+
+```javascript
+db.pesanan.aggregate([
+    {
+        $project: {
+            kode_pesanan: 1,
+            // 1. $filter: Ambil hanya item yang berharga > 100.000
+            item_mahal: {
+                $filter: {
+                    input: "$items",
+                    as: "item",
+                    cond: { $gt: ["$$item.harga", 100000] }
+                }
+            },
+            // 2. $map: Ekstrak hanya nama produknya saja
+            nama_produk: {
+                $map: {
+                    input: "$items",
+                    as: "item",
+                    in: "$$item.nama"
+                }
+            },
+            // 3. $reduce: Hitung total bobot kirim keseluruhan
+            total_berat_gram: {
+                $reduce: {
+                    input: "$items",
+                    initialValue: 0,
+                    in: { $add: ["$$value", { $multiply: ["$$this.berat", "$$this.qty"] }] }
+                }
+            }
+        }
+    }
+]);
+```
+
+---
+
+## 8. Materialized Views On-Demand: `$merge`
+
+Menyimpan hasil kalkulasi agregasi kompleks ke koleksi fisik tujuan secara inkremental tanpa menimpa data lama secara membabi buta:
+
+```javascript
+db.transaksi_mentah.aggregate([
+    { $match: { tanggal: { $gte: new Date("2026-11-01") } } },
+    {
+        $group: {
+            _id: "$toko_id",
+            total_penjualan: { $sum: "$total" },
+            transaksi_count: { $sum: 1 }
+        }
+    },
+    {
+        $merge: {
+            into: "ringkasan_toko_bulanan",    // Koleksi tujuan
+            on: "_id",                         // Primary key pencocokan
+            whenMatched: "replace",            // Ganti jika sudah ada
+            whenNotMatched: "insert"           // Buat baru jika belum ada
+        }
+    }
+]);
+```
+Pipeline `$merge` memungkinkan pembuatan **Data Mart analitik real-time** langsung di dalam klaster MongoDB!
