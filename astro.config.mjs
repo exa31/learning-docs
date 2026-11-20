@@ -7,7 +7,7 @@ export default defineConfig({
     starlight({
       title: 'Dev Cheatsheets 📖',
       description: 'Catatan & cheatsheet sintaks praktis pribadi lintas tech-stack',
-      favicon: '/favicon.svg',
+      favicon: '/favicon.svg?v=2',
       logo: {
         src: './src/assets/logo.svg',
         replacesTitle: false,
@@ -17,7 +17,7 @@ export default defineConfig({
           tag: 'link',
           attrs: {
             rel: 'icon',
-            href: '/favicon.svg',
+            href: '/favicon.svg?v=2',
             type: 'image/svg+xml',
           },
         },
@@ -25,14 +25,14 @@ export default defineConfig({
           tag: 'link',
           attrs: {
             rel: 'alternate icon',
-            href: '/favicon.ico',
+            href: '/favicon.ico?v=2',
           },
         },
         {
           tag: 'link',
           attrs: {
             rel: 'apple-touch-icon',
-            href: '/favicon.png',
+            href: '/favicon.png?v=2',
           },
         },
       ],
