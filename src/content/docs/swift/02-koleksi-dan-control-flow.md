@@ -1,99 +1,172 @@
 ---
-title: "02. Koleksi & Control Flow"
-description: Array, Set, Dictionary, range loopings, switch pattern matching tingkat lanjut, dan pembersihan dengan defer.
+title: "02. Koleksi, Control Flow & Pola Defer"
+description: Panduan Array, Set, Dictionary, pattern matching sakti pada switch-case (tuples & where clause), serta pembersihan resource terjamin dengan defer.
 ---
 
-# 🍏 Swift - Modul 02: Koleksi & Control Flow
+# 🍏 Swift - Modul 02: Koleksi, Control Flow & Pola Defer
 
-Cheatsheet kilat 3 koleksi data utama di Swift, perulangan range, dan percabangan pattern matching.
-
----
-
-## 1. Tiga Koleksi Utama: Array, Set, Dictionary
-
-### A. Array (Urut, boleh duplikat)
-```swift
-var buah = ["Apel", "Jeruk", "Mangga"]
-buah.append("Pisang")
-buah.insert("Alpukat", at: 0)
-let itemTerakhir = buah[buah.count - 1]
-```
-
-### B. Set (Himpunan Unik Tanpa Urutan)
-```swift
-var angkaUnik: Set<Int> = [1, 2, 2, 3] // Isinya hanya {1, 2, 3}
-angkaUnik.insert(4)
-```
-
-### C. Dictionary (Key-Value)
-Mengakses dictionary di Swift **selalu mengembalikan nilai Optional** (karena key belum tentu ada):
-```swift
-var skorUser: [String: Int] = ["Ali": 90, "Budi": 85]
-
-// Akses aman dengan default value:
-let skorSiti = skorUser["Siti", default: 0] // 0
-```
+Koleksi di Swift bersifat *type-safe* dan dioptimalkan secara mendalam di tingkat memori menggunakan teknik **Copy-on-Write (CoW)**. Mengontrol alur data dengan pattern matching dan menjaga pembersihan memori dengan `defer` adalah kebiasaan developer Swift profesional.
 
 ---
 
-## 2. Looping dengan Range
+## 1. 3 Koleksi Inti Swift (Array, Set, Dictionary)
 
+```mermaid
+flowchart TD
+    subgraph Collections["Koleksi Bawaan Swift"]
+        Arr["Array: [T]<br/>• Elemen terurut berurutan<br/>• Boleh ada duplikat nilai"]
+        St["Set: Set[T]<br/>• Elemen acak tanpa urutan<br/>• 100% UNIK (Wajib Hashable)"]
+        Dict["Dictionary: [Key: Value]<br/>• Pasangan Kunci-Nilai<br/>• Akses O(1) cepat"]
+    end
+```
+
+### A. Array (Daftar Berurutan)
 ```swift
-// 1. Closed Range (1 sampai 5 inklusif):
-for i in 1...5 {
-    print(i) // 1, 2, 3, 4, 5
-}
+var bahasa = ["Swift", "Kotlin", "Go"]
 
-// 2. Half-Open Range (0 sampai sebelum 5):
-for i in 0..<5 {
-    print(i) // 0, 1, 2, 3, 4
-}
+// Operasi dasar:
+bahasa.append("Rust")
+bahasa.insert("Python", at: 0)
+let pertama = bahasa.first // Mengembalikan Optional: String?
+let jumlah = bahasa.count
 
-// 3. Looping Dictionary:
-for (nama, skor) in skorUser {
-    print("\(nama): \(skor)")
+// Looping dengan Indeks dan Nilai:
+for (index, item) in bahasa.enumerated() {
+    print("Urutan ke-\(index + 1): \(item)")
 }
 ```
 
----
+### B. Set (Himpunan Unik Tanpa Duplikat)
+Tipe data yang dimasukkan ke dalam `Set` **wajib mematuhi protokol `Hashable`**:
+```swift
+var tags: Set<String> = ["ios", "mobile", "swift", "ios"] // "ios" duplikat otomatis dibuang!
+tags.insert("apple")
 
-## 3. `switch` Sakti (Otomatis Break & Pattern Matching)
+let tagFavorit: Set<String> = ["swift", "macos"]
 
-Di Swift, `switch` **otomatis berhenti** tanpa butuh kata kunci `break`. Mendukung pencocokan range, tuple, dan kondisi `where`:
+// Operasi himpunan matematika:
+let irisan = tags.intersection(tagFavorit)      // Hanya elemen yang ada di KEDUA set
+let gabungan = tags.union(tagFavorit)           // Gabungkan semua elemen unik
+let selisih = tags.subtracting(tagFavorit)       // Elemen di 'tags' yang TIDAK ada di 'tagFavorit'
+```
+
+### C. Dictionary (Kunci-Nilai)
+Mengambil nilai dari Dictionary **selalu mengembalikan Optional**, karena kunci yang dicari belum tentu ada di dalam database dictionary!
 
 ```swift
-let koordinat = (x: 5, y: 0)
+var profil: [String: String] = [
+    "nama": "Eka",
+    "role": "Lead Engineer"
+]
+
+// 1. Mengakses nilai (Hasilnya bertipe String?):
+if let nama = profil["nama"] {
+    print("Nama pengguna: \(nama)")
+}
+
+// 2. Mengakses dengan nilai fallback default instan:
+let lokasi = profil["kota", default: "Jakarta"] // Langsung mengembalikan String murni!
+```
+
+---
+
+## 2. Operator Rentang (Ranges)
+
+```swift
+// 1. Closed Range (1...5): Dari 1 sampai 5 (1, 2, 3, 4, 5)
+for i in 1...5 { print(i) }
+
+// 2. Half-Open Range (0..<5): Dari 0 sampai sebelum 5 (0, 1, 2, 3, 4)
+let itemArray = ["A", "B", "C"]
+for i in 0..<itemArray.count {
+    print("Index \(i) bernilai \(itemArray[i])")
+}
+
+// 3. One-Sided Range (Slicing Array)
+let angka = [10, 20, 30, 40, 50]
+let dariIndex2 = angka[2...] // [30, 40, 50]
+let hinggaIndex2 = angka[...2] // [10, 20, 30]
+```
+
+---
+
+## 3. Pattern Matching Sakti pada `switch`
+
+Di Swift, statement `switch` **bersifat exhaustive** (harus mencakup semua kemungkinan) dan **tidak otomatis fallthrough** (tidak butuh keyword `break`).
+
+### A. Pattern Matching dengan Tuples & Value Binding
+```swift
+let koordinat = (x: 10, y: 0)
 
 switch koordinat {
 case (0, 0):
-    print("Titik pusat")
-case (_, 0):
-    print("Berada di garis horizontal Y=0")
-case (let x, let y) where x == y:
-    print("Nilai X dan Y sama: \(x)")
-case (-10...10, -10...10):
-    print("Berada di dalam kotak range 10")
+    print("Titik pusat koordinat (Origin)")
+case (let x, 0):
+    print("Berada di garis horizontal sumbu X pada titik \(x)")
+case (0, let y):
+    print("Berada di garis vertikal sumbu Y pada titik \(y)")
+case let (x, y):
+    print("Berada di koordinat bebas (\(x), \(y))")
+}
+```
+
+### B. Menyematkan Klausa `where` untuk Filter Ekstrem
+```swift
+let suhuCelsius = 38
+
+switch suhuCelsius {
+case ...0:
+    print("Membeku!")
+case 1...35:
+    print("Suhu normal nyaman")
+case let s where s > 35 && s <= 40:
+    print("Peringatan: Panas demam (\(s)°C)!")
 default:
-    print("Di luar area")
+    print("Kritis! Segera ke rumah sakit.")
 }
 ```
 
 ---
 
-## 4. Kata Kunci `defer` (Eksekusi Pembersihan Terakhir)
+## 4. Pembersihan Resource Terjamin dengan `defer`
 
-`defer` menunda eksekusi blok kode sampai **fungsi saat ini selesai dieksekusi** (mirip `defer` di Golang):
+Blok kode di dalam **`defer`** dijamin akan dieksekusi **tepat sebelum scope fungsi saat ini berakhir**, baik fungsi tersebut selesai secara normal, via `return`, maupun saat melempar error (`throw`).
 
 ```swift
-func bukaDatabase() {
-    print("1. Buka koneksi DB")
-    
-    // Wajib: Jadwalkan penutupan koneksi:
+func bacaFileDanProses(namaFile: String) {
+    let fileHandle = bukaFile(namaFile)
+
+    // Pasang defer tepat setelah resource dibuka:
     defer {
-        print("3. Tutup koneksi DB (Selalu jalan terakhir!)")
+        // Blok ini 100% PASTI DIPANGGIL saat fungsi keluar!
+        tutupFile(fileHandle)
+        print("Resource file berhasil dibersihkan dari memori.")
     }
 
-    print("2. Proses query data...")
+    guard let baris1 = fileHandle.bacaBaris() else {
+        return // File ditutup otomatis oleh defer!
+    }
+
+    if baris1.contains("CORRUPT") {
+        return // File juga tetap ditutup otomatis oleh defer!
+    }
+
+    print("Data baris: \(baris1)")
 }
-// Output berurutan: 1 -> 2 -> 3
+```
+
+### Urutan Eksekusi Multiple `defer`: LIFO (Last-In, First-Out)
+Jika terdapat beberapa blok `defer` dalam satu scope, eksekusinya berjalan secara terbalik (mirip tumpukan piring):
+```swift
+func demoDefer() {
+    defer { print("1. Defer Pertama") }
+    defer { print("2. Defer Kedua") }
+    print("Eksekusi fungsi selesai.")
+}
+
+demoDefer()
+// Output:
+// Eksekusi fungsi selesai.
+// 2. Defer Kedua
+// 1. Defer Pertama
 ```

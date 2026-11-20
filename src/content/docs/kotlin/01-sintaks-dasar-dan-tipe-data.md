@@ -1,139 +1,176 @@
 ---
-title: "01. Sintaks Dasar & Tipe Data"
-description: Variabel val vs var, Unit vs Nothing, String template multiline, Smart Cast is, dan looping range.
+title: "01. Sintaks Dasar, Variabel & Tipe Data"
+description: Panduan tuntas sintaks Kotlin, val vs var, Unit vs Nothing, Smart Cast, Looping Range, dan ekspresi percabangan when modern.
 ---
 
-# 🟣 Kotlin - Modul 01: Sintaks Dasar & Tipe Data
+# 🟣 Kotlin - Modul 01: Sintaks Dasar, Variabel & Tipe Data
 
-Cheatsheet kilat sintaks dasar bahasa Kotlin. Kotlin adalah bahasa modern statically typed yang berjalan di atas JVM (dan Native / JS) dengan fokus keselamatan (*null-safety*), keringkasan, dan interoperabilitas penuh dengan Java.
+Kotlin adalah bahasa pemrograman modern berorientasi objek dan fungsional yang berjalan di atas Java Virtual Machine (JVM), Native (iOS/Desktop), dan JavaScript. Kotlin dirancang oleh JetBrains untuk mengatasi kelemahan verbositas dan *NullPointerException* warisan Java.
 
 ---
 
-## 1. Variabel: `val` vs `var`
+## 1. Deklarasi Variabel: `val` vs `var`
 
-- **`val`**: Read-only / Immutable (tidak bisa di-reassign). **Gunakan ini sebagai default!**
-- **`var`**: Mutable (nilainya bisa diubah-ubah).
+Di Kotlin, *immutability* (data tidak dapat diubah) sangat diprioritaskan:
 
 ```kotlin
+// 1. val (Value / Immutable): Nilai tidak bisa di-reassign setelah diinisialisasi
 val nama: String = "Eka"
-// nama = "Budi" // ❌ Error: Val cannot be reassigned
+// nama = "Budi" // ❌ ERROR: Val cannot be reassigned!
 
-var skor: Int = 100
-skor = 150 //  Bisa karena bertipe var
+// 2. var (Variable / Mutable): Nilai bisa diubah sewaktu-waktu
+var saldo: Double = 150000.0
+saldo += 50000.0 // ✅ OK
 
-// Type Inference (Tipe data otomatis ditebak compiler):
-val umur = 25       // Ditebak Int
-val saldo = 5000.0  // Ditebak Double
-val isAktif = true  // Ditebak Boolean
+// 3. Type Inference: Tipe data ditebak otomatis oleh compiler
+val umur = 28        // Otomatis bertipe Int
+val phi = 3.14159    // Otomatis bertipe Double
+val isAktif = true   // Otomatis bertipe Boolean
 ```
+
+> [!TIP]
+> **Aturan Emas Kotlin**: Selalu gunakan **`val`** secara default. Hanya ubah menjadi `var` jika variabel tersebut benar-benar membutuhkan mutasi nilai berulang kali di dalam loop atau kalkulasi dinamis.
 
 ---
 
-## 2. Return Type: `Unit` vs `Nothing`
+## 2. Hirarki Tipe Data: Primitive as Object, `Unit` & `Nothing`
 
-### A. `Unit` (Padanan `void`)
-Menandakan bahwa fungsi **tidak mengembalikan nilai apa pun**. Penulisan `: Unit` bersifat opsional dan boleh dihapus:
+Di Kotlin, **tidak ada tipe primitif mentah** seperti `int` atau `boolean` kecil di Java. Semua tipe data direpresentasikan sebagai objek kelas, namun compiler Kotlin otomatis mengompilasinya menjadi primitif JVM berkecepatan tinggi di balik layar.
 
-```kotlin
-fun cetakPesan(pesan: String): Unit {
-    println("Pesan: $pesan")
-}
-// Sama dengan:
-fun cetakPesanSingkat(pesan: String) {
-    println("Pesan: $pesan")
-}
+```mermaid
+classDiagram
+    class Any {
+        Semua class mewarisi Any
+        equals(), hashCode(), toString()
+    }
+    class Number
+    class String
+    class Boolean
+    class Unit {
+        Padanan void di Java
+        Mengembalikan 1 objek singleton
+    }
+    class Nothing {
+        Subtipe dari SEMUA tipe data!
+        Fungsi yang tidak pernah selesai
+    }
+
+    Any <|-- Number
+    Any <|-- String
+    Any <|-- Boolean
+    Any <|-- Unit
+    Number <|-- Int
+    Number <|-- Double
+    Number <|-- Long
+    Int <|-- Nothing
+    String <|-- Nothing
+    Unit <|-- Nothing
 ```
 
-### B. `Nothing` (Fungsi yang Tidak Pernah Selesai Normal)
-Menandakan bahwa eksekusi fungsi pasti melempar (*throw*) exception atau masuk ke dalam infinite loop:
+### A. Perbedaan `Unit` vs `Nothing`
+- **`Unit`**: Padanan dari `void` di Java/C, tetapi `Unit` adalah objek singleton nyata. Jika fungsi tidak mengembalikan nilai apa pun, fungsi tersebut secara implisit mengembalikan `Unit`:
+  ```kotlin
+  fun printPesan(pesan: String): Unit {
+      println(pesan)
+  }
+  ```
+- **`Nothing`**: Tipe data spesial yang **tidak memiliki instance**. Digunakan untuk menandai fungsi yang **tidak akan pernah kembali secara normal** (misalnya selalu melempar exception atau berada dalam infinite loop tak berujung):
+  ```kotlin
+  fun lemparErrorFatal(pesan: String): Nothing {
+      throw IllegalStateException("Bencana: $pesan")
+  }
 
-```kotlin
-fun lemparError(pesan: String): Nothing {
-    throw IllegalStateException("Error fatal: $pesan")
-}
-```
+  // Compiler memanfaatkan Nothing untuk type inference:
+  val data: String = database.find(id) ?: lemparErrorFatal("Data tidak ada")
+  // Di baris setelah ini, compiler TAHU PASTI variabel 'data' bertipe String murni (Bukan String?)!
+  ```
 
 ---
 
-## 3. String Templates & Multiline Raw String
-
-### A. Interpolasi String
-Gunakan `$nama` untuk variabel sederhana, dan `${ekspresi}` jika mengakses properti atau logika:
+## 3. String Template & Multiline Strings
 
 ```kotlin
-val barang = "MacBook"
-val harga = 18000000
+val harga = 50000
+val qty = 3
 
-println("Beli $barang seharga Rp ${harga * 0.9} (setelah diskon 10%)")
-```
+// 1. String Interpolasi sederhana dengan tanda $
+println("Harga satuan: $harga")
 
-### B. Multiline Raw String (`"""`)
-Tidak perlu ribet menyambung baris dengan `\n`. Gunakan `"""` dan `.trimIndent()`:
+// 2. Evaluasi ekspresi kompleks dengan kurung kurawal ${...}
+println("Total tagihan: Rp ${harga * qty}")
 
-```kotlin
-val querySQL = """
-    SELECT id, username, email
-    FROM users
-    WHERE is_active = true
-    ORDER BY created_at DESC
+// 3. Multiline Raw String dengan trimIndent()
+val formatJson = """
+    {
+      "nama": "Eka Dev",
+      "total_item": ${qty * 2},
+      "status": "PAID"
+    }
 """.trimIndent()
 ```
 
 ---
 
-## 4. Smart Cast (`is`) & Safe Cast (`as?`)
+## 4. Type Checking & Smart Casts
 
-Compiler Kotlin sangat cerdas: jika kamu sudah mengecek tipe data dengan `is`, kamu **tidak perlu melakukan casting manual lagi**!
+Di Java, setelah memeriksa `if (obj instanceof String)`, developer harus melakukan casting manual `(String) obj`. Di Kotlin, compiler secara cerdas melakukan **Smart Cast** otomatis!
 
-### Smart Cast:
 ```kotlin
-fun prosesObjek(data: Any) {
-    if (data is String) {
-        // Otomatis di-cast jadi String di dalam blok ini!
-        println("Panjang string: ${data.length}")
-    } else if (data is Int) {
-        // Otomatis di-cast jadi Int
-        println("Nilai kuadrat: ${data * data}")
+fun prosesData(obj: Any) {
+    // 1. Smart Cast dengan operator 'is'
+    if (obj is String) {
+        // Compiler otomatis menganggap obj sebagai String!
+        println("Panjang teks: ${obj.length}") // Langsung bisa panggil .length
     }
+
+    // 2. Inverted Check
+    if (obj !is Int) return
+    // Setelah return, compiler tahu pasti obj adalah Int!
+    println("Nilai kuadrat: ${obj * obj}")
+
+    // 3. Unsafe Cast 'as' vs Safe Cast 'as?'
+    // val teks = obj as String // ❌ Lempar ClassCastException jika obj bukan String!
+    val teksAman: String? = obj as? String // ✅ Jika gagal, menghasilkan null tanpa crash!
 }
-```
-
-### Unsafe (`as`) vs Safe Cast (`as?`):
-```kotlin
-val objek: Any = "Halo Kotlin"
-
-// Unsafe cast (Bisa Crash / ClassCastException jika tipe beda):
-val str1 = objek as String 
-
-// Safe cast (Mengembalikan null jika gagal cast, anti crash!):
-val angka = objek as? Int // Hasilnya null (bukan crash)
-println(angka) // null
 ```
 
 ---
 
-## 5. Looping Range & Stepping
+## 5. Control Flow Modern: Range Looping & `when`
 
-Kotlin menggunakan ekspresi *range* yang sangat bersih untuk perulangan:
+### A. Looping Range (`..`, `until`, `downTo`, `step`)
+```kotlin
+// 1. Rentang Inklusif 1 s/d 5 (1, 2, 3, 4, 5)
+for (i in 1..5) print("$i ")
+
+// 2. Rentang Eksklusif dengan 'until' (1, 2, 3, 4) - Sangat cocok untuk index array!
+for (i in 1 until 5) print("$i ")
+
+// 3. Menghitung Mundur dengan 'downTo' dan lompatan 'step'
+for (i in 10 downTo 0 step 2) {
+    print("$i ") // 10, 8, 6, 4, 2, 0
+}
+```
+
+### B. Ekspresi Sakti `when` (Pengganti `switch-case`)
+Di Kotlin, `when` bukan sekadar statement pemilih, melainkan **sebuah ekspresi yang mengembalikan nilai** (*Expression*) dan mendukung evaluasi kondisi bebas:
 
 ```kotlin
-// 1. Inklusif (1 sampai 5):
-for (i in 1..5) {
-    print("$i ") // 1 2 3 4 5
+val statusCode = 404
+
+val pesanRespons = when (statusCode) {
+    200, 201 -> "Sukses: Data berhasil diproses"
+    in 400..499 -> "Error Client: Permintaan tidak valid ($statusCode)"
+    in 500..599 -> "Error Server: Internal failure"
+    else -> "Kode status tidak dikenal"
 }
 
-// 2. Until (0 sampai sebelum 5):
-for (i in 0 until 5) {
-    print("$i ") // 0 1 2 3 4
-}
-
-// 3. Mundur (5 sampai 1):
-for (i in 5 downTo 1) {
-    print("$i ") // 5 4 3 2 1
-}
-
-// 4. Lompat (Step):
-for (i in 1..10 step 2) {
-    print("$i ") // 1 3 5 7 9
+// when tanpa argumen (Pengganti if-else ladder yang rapi):
+val skor = 85
+val predikat = when {
+    skor >= 90 -> "A - Luar Biasa"
+    skor >= 80 -> "B - Baik"
+    skor >= 70 -> "C - Cukup"
+    else -> "D - Ulangi"
 }
 ```

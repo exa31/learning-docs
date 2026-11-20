@@ -1,96 +1,116 @@
 ---
-title: "01. Mental Model & Recomposition"
-description: Mental model deklaratif Compose (UI = f(State)), kamus padanan GetX ke Compose, siklus Recomposition cerdas, serta remember vs rememberSaveable.
+title: "01. Mental Model, Siklus Hidup & Recomposition"
+description: Mental model deklaratif UI = f(State), cara kerja smart recomposition skipping, serta perbedaan mendalam remember vs rememberSaveable.
 ---
 
-# 📱 Jetpack Compose - Modul 01: Mental Model & Recomposition
+# 📱 Jetpack Compose - Modul 01: Mental Model, Siklus Hidup & Recomposition
 
-Jetpack Compose adalah toolkit UI deklaratif modern buatan Google untuk Android (pengganti XML & View klasik). Jika kamu sudah familiar dengan **Flutter (GetX)** atau **React / SwiftUI**, mental model Compose akan terasa sangat alami.
-
----
-
-## 1. Kamus Padanan GetX (Flutter) $\to$ Jetpack Compose (Android)
-
-| Fitur di GetX (Flutter) | Padanan di Jetpack Compose | Cara Kerja Singkat |
-|---|---|---|
-| `UI = f(state)` | `UI = f(State)` | Komponen UI adalah fungsi murni yang digambar ulang berdasarkan data state |
-| `.obs` (Reactive Variable) | `StateFlow` / `MutableStateFlow` | Stream data reaktif yang memancarkan perubahan nilai secara otomatis |
-| `GetxController` | `ViewModel` (Jetpack) | Kelas penampung logika bisnis dan pemegang state di luar UI |
-| `Obx(() => ...)` | `val state by vm.state.collectAsState()` | Mendengarkan perubahan state dan memicu recomposition otomatis |
-| `Get.to(DetailPage())` | `navController.navigate("detail")` | Berpindah layar menggunakan NavHost |
-| `Get.put(Controller())` | **Koin**: `koinViewModel()` / **Hilt**: `hiltViewModel()` | Dependency Injection otomatis ke dalam layar |
-| `Get.snackbar(...)` | `snackbarHostState.showSnackbar(...)` | Menampilkan pesan melayang (*toast / snackbar*) |
+Jetpack Compose adalah toolkit modern Google untuk membangun antarmuka pengguna Android secara **deklaratif**. Menggantikan sistem XML View yang sudah berusia belasan tahun, Compose memungkinkan developer mendeskripsikan antarmuka UI murni menggunakan bahasa Kotlin.
 
 ---
 
-## 2. Paradigma: Imperatif (XML) vs Deklaratif (Compose)
+## 1. Pergeseran Paradigma: Imperatif (XML) vs Deklaratif (Compose)
 
-- **Imperatif (XML / View Lama)**: Kita mencari widget via ID (`findViewById`), lalu mengubah propertinya secara manual (`textView.text = "Baru"`). Rawan inkonsistensi status dan *null reference*.
-- **Deklaratif (Compose)**: UI **dideskripsikan bagaimana tampilannya untuk suatu State tertentu**. Saat state berubah, framework otomatis memperbarui tampilan yang terpengaruh.
+Di era XML (Imperatif), kita membuat file XML terpisah, memanggil `findViewById()`, lalu secara manual memanggil setter untuk mengubah tampilan (`textView.setText(...)`, `button.setVisibility(View.GONE)`). Pendekatan ini sering memicu inkonsistensi state jika ada data yang lupa di-update.
+
+Di Jetpack Compose (Deklaratif), UI dideskripsikan sebagai **fungsi matematika murni dari State**:
+
+$$\mathbf{UI} = f(\mathbf{State})$$
+
+```mermaid
+flowchart LR
+    S[State: Data Aplikasi] -->|Input| C["Composable Function: f(State)"]
+    C -->|Render| UI[Tampilan Layar Android]
+    UI -->|User Klik / Input| E[Event]
+    E -->|Ubah Nilai| S
+```
+
+Ketika nilai State berubah, Compose mengeksekusi ulang fungsi Composable secara otomatis (**Recomposition**) untuk memperbarui elemen layar yang terpengaruh.
+
+---
+
+## 2. Anatomi Fungsi Composable
+
+Setiap fungsi UI di Compose wajib memiliki anotasi **`@Composable`**:
 
 ```kotlin
-// Komponen Compose hanyalah fungsi biasa dengan anotasi @Composable:
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+
 @Composable
-fun KartuUser(nama: String, isOnline: Boolean) {
-    Row(modifier = Modifier.padding(16.dp)) {
-        Text("Halo, $nama")
-        if (isOnline) {
-            BadgeOnline() // Otomatis muncul HANYA jika isOnline bernilai true
-        }
+fun KartuPengguna(nama: String, role: String) {
+    Text(text = "Halo, $nama! Role Anda: $role")
+}
+```
+
+### Karakteristik Penting Fungsi `@Composable`:
+1. **Bisa dipanggil berulang kali dan sangat cepat**: Compose Compiler mengoptimalkan fungsi agar dieksekusi dalam hitungan fraksi milidetik.
+2. **Bisa dieksekusi secara paralel**: Composable dapat berjalan di thread background yang berbeda-beda. Hindari membaca variabel global mutable di dalam fungsi!
+3. **Bisa dieksekusi dalam urutan sembarang**: Jangan mengasumsikan Composable baris 1 pasti selesai sebelum Composable baris 2.
+
+---
+
+## 3. Rahasia Recomposition & Skipping
+
+**Recomposition** adalah proses pemanggilan ulang fungsi composable ketika input state-nya berubah.
+
+Namun, apakah seluruh layar di-render ulang dari awal? **TIDAK**. 
+Compose memiliki fitur **Smart Recomposition (Skipping)**:
+
+```mermaid
+flowchart TD
+    StateChange["State 'counter' berubah dari 1 -> 2"] --> RootScreen[LayarUtama Composable]
+
+    RootScreen --> C1["HeaderView (State TIDAK berubah -> ⏭️ SKIPPED!)"]
+    RootScreen --> C2["CounterView (State BERUBAH -> 🔄 RECOMPOSED!)"]
+    RootScreen --> C3["FooterView (State TIDAK berubah -> ⏭️ SKIPPED!)"]
+```
+
+Compose Compiler secara cerdas menganalisis parameter fungsi. Jika parameter suatu composable bersifat stabil (*Stable*) dan nilainya tidak berubah sejak recomposition sebelumnya, Compose **melewati (*skips*) fungsi tersebut tanpa biaya CPU sama sekali**!
+
+---
+
+## 4. Manajemen State Lokal: `remember` vs `rememberSaveable`
+
+### A. Mengapa Butuh `remember`?
+Karena fungsi composable dipanggil berulang kali saat recomposition, variabel biasa akan ter-reset ke nilai awal setiap kali layar berkedip!
+Fungsi **`remember`** bertugas menyimpan objek di dalam memori Composition Tree agar selamat dari recomposition:
+
+```kotlin
+@Composable
+fun TombolCounter() {
+    // remember menyimpan nilai counter di memori Composition:
+    var count by remember { mutableStateOf(0) }
+
+    Button(onClick = { count++ }) {
+        Text("Diklik $count kali")
     }
 }
 ```
 
 ---
 
-## 3. Apa itu Recomposition?
+### B. Kapan Wajib Menggunakan `rememberSaveable`?
+Meskipun `remember` menjaga state selama recomposition, `remember` **AKAN HILANG jika terjadi Configuration Change** (seperti layar diputar dari Portrait ke Landscape, ganti tema Dark Mode, atau Android membunuh proses aplikasi di background / *Process Death*).
 
-**Recomposition** adalah proses di mana Compose memanggil ulang fungsi `@Composable` ketika data input atau state-nya berubah.
-
-### Fitur Kunci Recomposition:
-1. **Intelligent Skipping**: Compose melacak data yang masuk ke tiap Composable. Jika parameter tidak berubah, Composable tersebut **akan dilewati (*skip*)** dan tidak di-render ulang.
-2. **Non-blocking / Optimistic**: Recomposition bisa dibatalkan di tengah jalan jika state berubah kembali sebelum frame berikutnya selesai dirender.
-3. **Bisa berjalan di sembarang thread**: Jangan pernah melakukan operasi blocking I/O (seperti read disk atau API call) langsung di dalam body Composable!
-
----
-
-## 4. State Lokal: `remember` vs `rememberSaveable`
-
-Karena fungsi Composable dipanggil berulang-ulang setiap kali Recomposition terjadi, variabel lokal biasa akan ter-reset. Gunakan `remember` untuk mempertahankan nilai:
-
-### A. `remember`: Bertahan Selama Recomposition
-```kotlin
-@Composable
-fun CounterSederhana() {
-    // Nilai bertahan saat recomposition, tapi TER-RESET jika layar diputar (Configuration Change)
-    var hitungan by remember { mutableStateOf(0) }
-
-    Button(onClick = { hitungan++ }) {
-        Text("Total: $hitungan")
-    }
-}
-```
-
-### B. `rememberSaveable`: Selamat dari Rotasi Layar
-Jika pengguna memutar layar dari Portrait ke Landscape (Activity di-destroy dan dibuat ulang oleh Android), gunakan `rememberSaveable`:
+Gunakan **`rememberSaveable`** untuk menyimpan state ke dalam Android `Bundle`:
 
 ```kotlin
 @Composable
-fun InputFormNama() {
-    // Nilai TETAP SELAMAT saat layar diputar atau proses aplikasi mati di background:
+fun FormInputNama() {
+    // rememberSaveable selamat saat HP diputar ke horizontal (Rotate Screen)!
     var namaInput by rememberSaveable { mutableStateOf("") }
 
     TextField(
         value = namaInput,
         onValueChange = { namaInput = it },
-        label = { Text("Nama Lengkap") }
+        label = { Text("Masukkan Nama Anda") }
     )
 }
 ```
 
----
-
-## 5. Ringkasan Aturan Emas Compose
-1. **Fungsi Composable harus idempotensial**: Output tampilan hanya bergantung pada parameter yang dikirim.
-2. **Bebas Side-Effect**: Jangan mutasi variabel global di dalam Composable (gunakan `LaunchedEffect` jika butuh async/side-effect).
-3. **State Hoisting**: Angkat state ke parent view atau ViewModel agar komponen anak bersifat stateless dan mudah di-test.
+| Situasi | Variabel Biasa (`var x = 0`) | `remember { ... }` | `rememberSaveable { ... }` |
+|---|---|---|---|
+| **Recomposition Layar** | ❌ Ter-reset ke 0 | ✅ **Selamat (Tersimpan)** | ✅ **Selamat (Tersimpan)** |
+| **Rotasi Layar (Rotate)** | ❌ Ter-reset ke 0 | ❌ Ter-reset ke 0 | ✅ **Selamat (Tersimpan)** |
+| **Process Death (RAM Penuh)** | ❌ Ter-reset ke 0 | ❌ Ter-reset ke 0 | ✅ **Selamat (Tersimpan)** |

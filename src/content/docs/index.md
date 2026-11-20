@@ -50,13 +50,13 @@ import { Card, CardGrid } from '@astrojs/starlight/components';
 		<br/>
 		[Buka Catatan Dart &rarr;](/dart/01-sintaks-dasar-dan-null-safety/)
 	</Card>
-	<Card title="🟣 Kotlin (7 Modul)" icon="seti:kotlin">
-		Sintaks dasar, Sound Null Safety (`?.`, `?:`), Lambdas & Infix, Koleksi & Sequence, OOP Data Class & Delegasi, 5 Scope Functions, dan Coroutines & Reactive Flow.
+	<Card title="🟣 Kotlin (10 Modul Lengkap)" icon="seti:kotlin">
+		Sintaks & Null Safety, Extension/Infix/Inline functions, Koleksi & Lazy Sequences, Sealed Hierarchy, 5 Scope Functions, Generics Variance (in/out) & Reified, Coroutines deep dive, Reactive Flow/StateFlow, serta kotlinx.serialization & KMP.
 		<br/>
 		[Buka Catatan Kotlin &rarr;](/kotlin/01-sintaks-dasar-dan-tipe-data/)
 	</Card>
-	<Card title="🍏 Swift (6 Modul)" icon="apple">
-		Optionals (`guard let`, `if let`), Value vs Reference (Struct vs Class), Enums Associated Values, Extensions, Generics, dan Structured Concurrency (`async`/`await`, `actor`, `Sendable`).
+	<Card title="🍏 Swift (9 Modul Lengkap)" icon="apple">
+		Optionals & Control Flow, Closures & Capture Lists, Struct vs Class & ARC memory leaks, Enums Associated Values state machine, Protocols POP & some vs any, Error handling & Codable, Property Wrappers & Macros, serta Swift 6 Strict Concurrency & Actors.
 		<br/>
 		[Buka Catatan Swift &rarr;](/swift/01-sintaks-dasar-dan-optionals/)
 	</Card>
@@ -65,13 +65,13 @@ import { Card, CardGrid } from '@astrojs/starlight/components';
 		<br/>
 		[Buka Catatan Flutter &rarr;](/flutter/01-widget-tree-dan-lifecycle/)
 	</Card>
-	<Card title="📱 Jetpack Compose (6 Modul)" icon="android">
-		Mental Model GetX $\to$ Compose, Recomposition, UDF & StateFlow, Layouts & Modifiers, Lazy Lists & Sticky Headers, Side Effects, dan Navigation Clean Architecture.
+	<Card title="📱 Jetpack Compose (9 Modul Lengkap)" icon="android">
+		Deklaratif UI & Recomposition skipping, UDF & collectAsStateWithLifecycle, Layouts & Modifier chaining, Lazy Layouts & Paging 3, Side Effects & Lifecycle, Animasi & Shimmer, Material 3 & CompositionLocal, Compiler Stability, serta Type-Safe Navigation 2.8+.
 		<br/>
 		[Buka Catatan Compose &rarr;](/compose/01-mental-model-dan-recomposition/)
 	</Card>
-	<Card title="🍎 SwiftUI (5 Modul)" icon="apple">
-		Deklaratif `View = f(State)`, VStack/HStack/ZStack, `@State`, `@Binding`, modern `@Observable` (iOS 17+), NavigationStack, dan Clean MVVM REST API.
+	<Card title="🍎 SwiftUI (8 Modul Lengkap)" icon="apple">
+		ViewBuilder & Stacks, State Management modern (@Observable & @Bindable), NavigationStack type-safe & Sheets, Form & @FocusState, Animasi & matchedGeometryEffect hero transitions, Custom ViewModifier & Layout Protocol, SwiftData persistensi, serta Clean MVVM.
 		<br/>
 		[Buka Catatan SwiftUI &rarr;](/swiftui/01-mental-model-dan-layout/)
 	</Card>

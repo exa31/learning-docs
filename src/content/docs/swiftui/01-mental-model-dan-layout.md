@@ -1,128 +1,154 @@
 ---
-title: "01. Mental Model & Layouts"
-description: Mental model deklaratif SwiftUI (View = f(State)), View Builder some View, VStack/HStack/ZStack, hukum chaining modifiers, dan frame.
+title: "01. Mental Model, ViewBuilder & Tata Letak Dasar"
+description: Mental model deklaratif SwiftUI, View = f(State), protokol View, anotasi @ViewBuilder, tata letak VStack/HStack/ZStack, dan aturan urutan modifier.
 ---
 
-# 🍎 SwiftUI - Modul 01: Mental Model & Layouts
+# 🍎 SwiftUI - Modul 01: Mental Model, ViewBuilder & Tata Letak Dasar
 
-SwiftUI adalah framework UI deklaratif modern buatan Apple untuk iOS, macOS, watchOS, dan tvOS. Alih-alih membuat UI berbasis objek imperatif (seperti UIKit `UILabel` atau `UIViewController`), di SwiftUI **tampilan adalah fungsi murni dari State (`UI = f(State)`)**.
+SwiftUI adalah framework deklaratif modern dari Apple untuk membangun antarmuka pengguna di seluruh platform: **iOS, macOS, watchOS, tvOS, dan visionOS** menggunakan satu paradigma bahasa yang terpadu.
 
 ---
 
-## 1. Struktur Dasar: Protokol `View` & `some View`
+## 1. Pergeseran Paradigma: UIKit (Imperatif) vs SwiftUI (Deklaratif)
 
-Setiap komponen UI di SwiftUI adalah sebuah `struct` yang mengadopsi protokol `View`:
+Di era UIKit lama, kita membuat UI secara imperatif: membuat `UILabel`, mengatur autolayout constraints dengan kode panjang, lalu manual memanggil `label.text = "..."`. 
+
+Di SwiftUI, **UI adalah fungsi dari State**:
+
+$$\mathbf{UI} = f(\mathbf{State})$$
+
+```mermaid
+flowchart LR
+    S[State Data] -->|Otomatis Menghasilkan| V["View: body = f(State)"]
+    V -->|User Interaksi / Ketuk| A[Action / Event]
+    A -->|Update| S
+```
+
+Anda tidak pernah memanipulasi elemen UI secara langsung. Anda hanya mengubah data State, dan SwiftUI akan **menghitung perbedaan (*diffing*) pohon UI dan meng-update layar secara instan**!
+
+---
+
+## 2. Anatomi View: Mengapa `struct` Bukan `class`?
+
+Di UIKit, setiap `UIView` adalah objek `class` yang berat di memori. Di SwiftUI, **semua View adalah `struct` ringan (*Value Type*)**.
 
 ```swift
 import SwiftUI
 
-struct SalamView: View {
-    // Properti 'body' mendeskripsikan tampilan komponen:
-    var body: some View {
-        Text("Halo dari SwiftUI! 🚀")
-            .font(.title2)
-            .foregroundColor(.blue)
-    }
-}
+struct ProfilCardView: View {
+    let nama: String
+    let jabatan: String
 
-// Preview instan di Xcode Canvas menggunakan macro #Preview:
-#Preview {
-    SalamView()
+    // Protokol View mewajibkan SATU properti komputasi: 'body'
+    var body: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            Text(nama)
+                .font(.headline)
+            Text(jabatan)
+                .font(.subheadline)
+                .foregroundStyle(.secondary)
+        }
+        .padding()
+        .background(Color(.systemGray6))
+        .clipShape(RoundedRectangle(cornerRadius: 12))
+    }
 }
 ```
 
-> 🧠 **Apa itu `some View` (Opaque Return Type)?**
-> Artinya fungsi mengembalikan tipe konkret yang mengadopsi protokol `View`, tanpa kita harus menulis tipe internal yang panjang dan rumit (`ModifiedContent<Text, _EnvironmentKeyWritingModifier<Font>>`).
+### Mengapa `struct` Sangat Cepat?
+Membuat 1.000 struct View di SwiftUI hampir tidak memakan biaya alokasi memori heap. SwiftUI dapat menghancurkan dan membuat ulang ribuan struct View setiap detik tanpa memicu lag atau frame drop!
 
 ---
 
-## 2. Tiga Wadah Layout Fundamental: `VStack`, `HStack`, `ZStack`
+## 3. Komponen Penampung Inti: VStack, HStack & ZStack
 
-### A. `VStack` (Vertikal: Atas ke Bawah)
+```mermaid
+flowchart TD
+    subgraph Stacks["3 Pilar Tata Letak SwiftUI"]
+        VS["1. VStack<br/>Menyusun tampilan secara VERTIKAL<br/>(Atas ke Bawah)"]
+        HS["2. HStack<br/>Menyusun tampilan secara HORIZONTAL<br/>(Kiri ke Kanan)"]
+        ZS["3. ZStack<br/>Menumpuk tampilan di sumbu Z<br/>(Lapisan Belakang ke Depan)"]
+    end
+```
+
+### A. Alignment & Spacing pada Stacks
 ```swift
-VStack(alignment: .leading, spacing: 8) {
-    Text("MacBook Pro M3")
-        .font(.headline)
-    Text("Apple Silicon 14-inch")
-        .font(.subheadline)
-        .foregroundColor(.secondary)
+HStack(alignment: .center, spacing: 16) {
+    Image(systemName: "person.circle.fill")
+        .resizable()
+        .frame(width: 48, height: 48)
+        .foregroundStyle(.blue)
+
+    VStack(alignment: .leading, spacing: 4) {
+        Text("Eka Dev")
+            .font(.title3)
+            .bold()
+        Text("Online")
+            .font(.caption)
+            .foregroundStyle(.green)
+    }
+
+    Spacer() // Mendorong konten ke kiri, mengisi sisa ruang kanan!
+
+    Image(systemName: "chevron.right")
+        .foregroundStyle(.tertiary)
 }
 .padding()
 ```
 
-### B. `HStack` (Horizontal: Kiri ke Kanan)
+### B. ZStack untuk Tampilan Berlapis (Overlay)
 ```swift
-HStack(spacing: 12) {
-    Image(systemName: "cart.fill") // SF Symbols bawaan Apple
-        .foregroundColor(.orange)
-    Text("Total Keranjang")
-    Spacer() // Mendorong teks harga ke ujung kanan
-    Text("Rp 1.500.000")
-        .bold()
-}
-.padding(.horizontal)
-```
+ZStack(alignment: .bottomTrailing) {
+    // 1. Lapisan Belakang: Foto Profil
+    Image("avatar")
+        .resizable()
+        .frame(width: 80, height: 80)
+        .clipShape(Circle())
 
-### C. `ZStack` (Tumpukan Kedalaman / Sumbu Z)
-Menumpuk elemen di atas elemen lainnya (cocok untuk kartu bergambar atau badge notifikasi):
-
-```swift
-ZStack(alignment: .topTrailing) {
-    // Lapisan 1 (Bawah): Background Kartu
-    RoundedRectangle(cornerRadius: 16)
-        .fill(Color.blue.gradient)
-        .frame(width: 200, height: 120)
-
-    // Lapisan 2 (Tengah): Teks Konten
-    Text("Kartu Member VIP")
-        .foregroundColor(.white)
-        .padding()
-
-    // Lapisan 3 (Pojok Kanan Atas): Badge
+    // 2. Lapisan Depan: Titik Hijau Status Online
     Circle()
-        .fill(Color.red)
+        .fill(Color.green)
         .frame(width: 20, height: 20)
-        .offset(x: -8, y: 8)
+        .overlay(Circle().stroke(Color.white, lineWidth: 3))
 }
 ```
 
 ---
 
-## 3. Hukum Urutan Modifiers (Chaining Order Matters!)
+## 4. Aturan Mutlak Modifier Chaining (Urutan Sangat Menentukan!)
 
-Di SwiftUI, setiap modifier (`.padding()`, `.background()`, `.cornerRadius()`) **membungkus view yang sudah ada ke dalam view baru**. Urutan penulisan modifier sangat menentukan hasil visual:
+Di SwiftUI, setiap kali Anda memanggil modifier (seperti `.padding()` atau `.background()`), SwiftUI **tidak memodifikasi view asli**, melainkan **membungkus view tersebut ke dalam view baru**!
 
-```swift
-//  BENAR: Beri padding dulu, lalu beri background (Background membungkus seluruh padding):
-Text("Tombol Keren")
-    .padding(16)
-    .background(Color.blue)
-    .foregroundColor(.white)
-    .cornerRadius(10)
+```mermaid
+flowchart LR
+    subgraph KasusA["Kasus A: .padding() Dulu -> .background()"]
+        A["Text('Halo').padding(20).background(Color.Yellow)"]
+        ResA["Kotak kuning MELEBAR mencakup seluruh area padding!"]
+    end
 
-// ❌ SALAH: Beri background dulu, lalu padding (Background hanya membungkus teks tipis, padding di luar transparan):
-Text("Tombol Keren")
-    .background(Color.blue)
-    .padding(16)
+    subgraph KasusB["Kasus B: .background() Dulu -> .padding()"]
+        B["Text('Halo').background(Color.Yellow).padding(20)"]
+        ResB["Kotak kuning HANYA melingkupi teks! Area padding tetap transparan."]
+    end
 ```
 
----
-
-## 4. Pengendalian Ruang: `Spacer` & `.frame()`
-
-- **`Spacer()`**: Elemen fleksibel yang memakan seluruh ruang kosong yang tersisa.
-- **`.frame()`**: Menentukan dimensi ukuran view:
-
+### Perhatikan Urutan Frame & Background:
 ```swift
-// Membuat tombol lebar penuh (Full-Width Button):
-Button(action: { print("Checkout!") }) {
-    Text("Lanjut ke Pembayaran")
-        .bold()
-        .frame(maxWidth: .infinity) // Memenuhi seluruh lebar layar
-        .padding()
-        .background(Color.blue)
-        .foregroundColor(.white)
-        .clipShape(Capsule())
-}
-.padding(.horizontal)
+// 1. Menentukan ukuran dulu, baru mewarnai (Optimal):
+Text("Tombol Lebar")
+    .frame(maxWidth: .infinity) // 1. Melebarkan ukuran penuh
+    .padding()                  // 2. Beri jarak dalam
+    .background(Color.blue)     // 3. Warna biru melebar penuh!
+    .foregroundStyle(.white)
+    .clipShape(Capsule())
+
+// 2. Memasang Border dan Corner Radius yang Benar:
+Text("Kotak Bergaris")
+    .padding()
+    .background(Color.white)
+    .clipShape(RoundedRectangle(cornerRadius: 12))
+    .overlay(
+        RoundedRectangle(cornerRadius: 12)
+            .stroke(Color.blue, lineWidth: 2) // Garis border rapi di pinggir kurva!
+    )
 ```

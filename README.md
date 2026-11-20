@@ -70,22 +70,28 @@ Perintah lain:
 4. `04. OOP, Mixin & Extension` (Constructor `this.prop`, named constructor, mixin `with`, extension methods).
 5. `05. Async, Stream & Fitur Dart 3` (`Future`, `Stream` reaktif, Records tuple Dart 3, switch expression).
 
-### 🟣 [Kotlin (7 Modul)](file:///Users/macbookair/learning/src/content/docs/kotlin/01-sintaks-dasar-dan-tipe-data.md)
-1. `01. Sintaks Dasar & Tipe Data` (`val` vs `var`, `Unit` vs `Nothing`, string template `${ekspresi}`, multiline `"""`, Smart Cast `is`, safe cast `as?`, looping range).
-2. `02. Null Safety & Operator Khusus` (Sound Null Safety `?`, Safe call `?.`, Elvis `?:` untuk fallback & early return, bahaya `!!`, `filterNotNull()`, safe unwrapping `?.let`).
-3. `03. Fitur Fungsi & Lambdas` (Single expression, default & named arguments, `vararg` & spread `*`, extension functions, `infix`, `tailrec`, trailing lambda & `it`, `inline fun`).
-4. `04. Koleksi & Sequence` (List/Set/Map read-only vs mutable, transformasi `map`/`filter`/`flatMap`/`partition`, `groupBy` & `associateBy`, `sumOf`/`fold`, optimasi lazy `Sequence`).
-5. `05. OOP, Data Class, & Delegasi` (Primary constructor, `lateinit var`, `data class` & `.copy()`, singleton `object` & `companion`, `sealed class`/`sealed interface` exhaustive `when`, properti delegasi `by lazy`).
-6. `06. Cheatsheet Scope Functions` (Matriks 5 fungsi: `apply`, `also`, `let`, `run`, `with`, perbedaan `this` vs `it`, context object vs lambda result, rumus cepat pemilih).
-7. `07. Coroutines & Flow` (`suspend fun`, `Dispatchers` Main/IO/Default, `withContext`, `launch` vs `async`/`await`, `supervisorScope`, Reactive Cold Stream `Flow`, `StateFlow` vs `SharedFlow`).
+### 🟣 [Kotlin (10 Modul Lengkap)](file:///Users/macbookair/learning/src/content/docs/kotlin/01-sintaks-dasar-dan-tipe-data.md)
+1. `01. Sintaks Dasar, Variabel & Tipe Data` (`val` vs `var`, `Unit` vs `Nothing`, Smart Cast `is`, safe cast `as?`, looping range `..`/`until`/`downTo`, ekspresi `when`).
+2. `02. Null Safety & Operator Spesial` (Sound Null Safety `?`, Safe call `?.`, Elvis `?:` guard return, bahaya assertion `!!`, `filterNotNull()`, safe `?.let`, Java platform types `T!`).
+3. `03. Fitur Fungsi, Lambdas & Inline Optimization` (Default & named args, `vararg` & spread `*`, extension functions, `infix`, `tailrec`, function type with receiver DSL, `inline`/`noinline`/`crossinline`).
+4. `04. Koleksi, Transformasi & Lazy Sequences` (Read-only vs Mutable, `partition`, `groupBy` vs `associateBy`, `flatMap`, `sumOf`/`fold`, optimasi memory vertical traversal `Sequence`).
+5. `05. OOP, Sealed Hierarchy & Properti Delegasi` (`data class` & destructuring, `sealed interface` exhaustive state machine, companion object, `by lazy`, `Delegates.observable`, custom `ReadWriteProperty`).
+6. `06. Cheatsheet 5 Scope Functions & Idiom Kotlin` (Matriks komparasi `apply`, `also`, `let`, `run`, `with`, tabel pembeda `this` vs `it`, context vs return value, flowchart pemilih).
+7. `07. Generics, Variance (in/out) & Reified Types` (Type constraints, masalah invariance, Covariance `out` vs Contravariance `in` PECS, Type Erasure JVM, `inline fun <reified T>`).
+8. `08. Coroutines Deep Dive & Structured Concurrency` (CPS state machine, Dispatchers Main/IO/Default, `launch` vs `async`/`await`, pembatalan kooperatif `ensureActive()`, `SupervisorJob`, `Mutex`).
+9. `09. Reactive Flow, StateFlow & SharedFlow` (Cold Stream `flow`, `flowOn` thread, `debounce` & `distinctUntilChanged`, backpressure `buffer`/`conflate`, Hot `StateFlow` UI state & `SharedFlow` events).
+10. `10. kotlinx.serialization & Fondasi KMP` (`@Serializable`, `@SerialName`, polymorphic sealed serialization, filosofi KMP share logic keep UI native, mekanisme `expect`/`actual`).
 
-### 🍏 [Swift (6 Modul)](file:///Users/macbookair/learning/src/content/docs/swift/01-sintaks-dasar-dan-optionals.md)
-1. `01. Sintaks Dasar & Optionals` (`let` vs `var`, string interpolation, Optional `?`, unwrapping via `guard let`, `if let`, nil-coalescing `??`).
-2. `02. Koleksi & Control Flow` (Array, Set unik, Dictionary optional return, range `1...5` vs `0..<5`, switch pattern matching tuples/where, pembersihan `defer`).
-3. `03. Fungsi & Closures` (Argument labels `_` & external/internal, `inout` reference, closures expression syntax, shorthand `$0`/`$1`, trailing closures, `@escaping`, memory leak `[weak self]`).
-4. `04. Struct, Class, dan Enum` (Value type Struct vs Reference type Class, keyword `mutating`, ARC & `weak`, Enums Associated Values status network, CaseIterable).
-5. `05. Protocols, Extension, & Generics` (POP Protocol-Oriented Programming, default implementation extension, retroactive modeling tipe bawaan `Int`/`String`, Generics `<T>`, protocol `Codable` & `Identifiable`).
-6. `06. Concurrency & Actors` (Modern `async`/`await`, `Task`, `async let`, `withTaskGroup`, `actor` bebas data-race, `@MainActor`, protokol `Sendable`).
+### 🍏 [Swift (9 Modul Lengkap)](file:///Users/macbookair/learning/src/content/docs/swift/01-sintaks-dasar-dan-optionals.md)
+1. `01. Sintaks Dasar & Optionals Terlengkap` (`let` vs `var`, string interpolation, Optional enum di balik layar, `guard let` golden path vs `if let`, nil-coalescing `??`, optional chaining `?.`).
+2. `02. Koleksi, Control Flow & Pola Defer` (Array, Set unik Hashable, Dictionary optional return, ranges, `for-in` enumerated, pattern matching switch tuples/where, pembersihan LIFO `defer`).
+3. `03. Fungsi, Closures & Memory Capture Lists` (Argument labels `_`/external, `inout` reference, evolusi closures `$0`/`$1`, trailing closures, escaping closures `@escaping`, capture list `[weak self]`).
+4. `04. Struct, Class & Manajemen Memori ARC` (Value Types Struct Stack vs Reference Types Class Heap, Copy-on-Write CoW, `mutating`, ARC reference counting, retain cycles, `weak` vs `unowned`).
+5. `05. Enums, Associated Values & State Machines` (First-class enum, Raw Values vs Associated Values memodelkan status UI, `CaseIterable`, recursive `indirect enum`, `if case let`).
+6. `06. Protocols, Generics & Opaque Types (some vs any)` (Protocol-Oriented Programming POP, default implementation extensions, retroactive modeling, generics, `some View` vs `any Protocol`).
+7. `07. Error Handling, Result Type & Codable JSON` (Custom `LocalizedError`, `throws`/`do-catch`, `try?`, enum `Result`, protokol `Codable`, pemetaan `CodingKeys`, `convertFromSnakeCase`).
+8. `08. Property Wrappers & Swift 5.9+ Macros` (Anatomi `@propertyWrapper`, `wrappedValue`, projected value `$`, Swift Macros compile-time `#Preview`, `#URL`, revolusi `@Observable`).
+9. `09. Swift 6 Concurrency, Actors & AsyncStream` (Compile-Time Data Race Safety, `async`/`await`, `async let`, `TaskGroup` paralel, proteksi data race via `actor`, `@MainActor`, `AsyncStream`).
 
 ### 🎨 [Flutter (5 Modul)](file:///Users/macbookair/learning/src/content/docs/flutter/01-widget-tree-dan-lifecycle.md)
 1. `01. Widget Tree & Lifecycle` (Everything is a Widget, `StatelessWidget` vs `StatefulWidget`, State Lifecycle `initState`/`build`/`dispose`, Hot Reload vs Hot Restart).
@@ -94,20 +100,26 @@ Perintah lain:
 4. `04. State Management (GetX)` (Reaktivitas `.obs` & `GetxController`, `Obx(() => ...)`, Dependency Injection `Get.put()`/`Get.find()`, Workers `debounce`/`ever`).
 5. `05. Navigation & REST API` (Navigasi tanpa BuildContext `Get.to()`/`Get.back()`, dialog/snackbar instan, integrasi REST API dengan `http`, Clean Architecture layout).
 
-### 📱 [Jetpack Compose (6 Modul)](file:///Users/macbookair/learning/src/content/docs/compose/01-mental-model-dan-recomposition.md)
-1. `01. Mental Model & Recomposition` (Kamus padanan GetX $\to$ Compose, deklaratif `UI = f(State)`, Recomposition skipping, `remember` vs `rememberSaveable`).
-2. `02. State Management & ViewModel` (Unidirectional Data Flow UDF & State Hoisting, `_private MutableStateFlow` vs `public StateFlow`, `collectAsStateWithLifecycle()`, `sealed interface UiState`).
-3. `03. Layouts & Modifiers` (Container `Column`/`Row`/`Box`/`Scaffold`, hukum urutan modifier chaining, Alignment vs Arrangement, `Spacer` & `weight`).
-4. `04. Lazy Layouts & Lists` (Pengganti RecyclerView: `LazyColumn`/`LazyRow`/`LazyVerticalGrid`, stable key `items(key = ...)`, sticky headers, pagination infinite scroll).
-5. `05. Side Effects & Lifecycle` (Kapan butuh effect, `LaunchedEffect`, `rememberCoroutineScope`, `DisposableEffect`, handling one-off events Snackbar & navigasi).
-6. `06. Navigation & Arsitektur` (Compose Navigation modern `NavHost`, argument passing, type-safe navigation, DI Koin/Hilt, arsitektur Clean Architecture presentation layer).
+### 📱 [Jetpack Compose (9 Modul Lengkap)](file:///Users/macbookair/learning/src/content/docs/compose/01-mental-model-dan-recomposition.md)
+1. `01. Mental Model, Siklus Hidup & Recomposition` (Deklaratif `UI = f(State)`, karakteristik `@Composable`, Smart Recomposition skipping, `remember` vs `rememberSaveable` rotasi layar).
+2. `02. State Management, ViewModel & UDF` (Unidirectional Data Flow UDF, State Hoisting stateless vs stateful, konsumsi `collectAsStateWithLifecycle()`, ViewModel StateFlow & Channel effects).
+3. `03. Layouts, Modifiers & Scaffold Material 3` (Container `Column`/`Row`/`Box`, Alignment vs Arrangement, hukum urutan modifier chaining padding vs background, `Modifier.weight`, `Scaffold`).
+4. `04. Lazy Layouts, Sticky Headers & Paging 3` (Pengganti RecyclerView `LazyColumn`/`LazyRow`, wajibnya parameter `key`, animasi `animateItem()`, `stickyHeader`, `LazyListState`, AndroidX Paging 3).
+5. `05. Side Effects & Lifecycle Awareness` (Matriks 5 handlers: `LaunchedEffect`, `rememberCoroutineScope`, `DisposableEffect` cleanup, `rememberUpdatedState`, `LifecycleEventEffect`).
+6. `06. Animasi & Gestures Lengkap` (`animate*AsState`, `AnimatedVisibility`, `AnimatedContent`, efek Shimmer Loading skeleton via `rememberInfiniteTransition`, deteksi sentuhan `pointerInput`).
+7. `07. Theming Material 3 & CompositionLocal` (Pilar M3 Color/Typography/Shapes, Dynamic Colors Material You Android 12+, injeksi data implisit `CompositionLocalProvider`, static vs regular local).
+8. `08. Optimasi Kinerja, Stability & derivedStateOf` (Sistem Stability Compiler `@Stable` & `@Immutable`, bahaya Unstable `List<T>`, `derivedStateOf` bendungan recomposition, lambda offset modifier).
+9. `09. Navigation Type-Safe 2.8+ & Clean Architecture` (Navigation Compose 2.8+ rute `@Serializable` tanpa URL string, `toRoute()`, arsitektur Clean Code Route Screen Content, injeksi Hilt/Koin).
 
-### 🍎 [SwiftUI (5 Modul)](file:///Users/macbookair/learning/src/content/docs/swiftui/01-mental-model-dan-layout.md)
-1. `01. Mental Model & Layouts` (Deklaratif `UI = f(State)`, View Builder `some View`, container `VStack`/`HStack`/`ZStack`, hukum urutan modifier chaining, `.frame()`).
-2. `02. State Management` (`@State` private local, `@Binding` dua arah dengan `$`, modern macro `@Observable` Swift 5.9+ / iOS 17+, `@Environment` konteks global).
-3. `03. List & Navigation` (Pengganti TableView: `List` & `ForEach` `Identifiable`, `NavigationStack` modern iOS 16+, type-safe `.navigationDestination(for:)`, `.searchable()`).
-4. `04. Lifecycle & Modal Effects` (Async `.task`, `.onAppear`/`.onDisappear`, `.onChange` reaktif, pop-up Sheet modal, Alert dialog).
-5. `05. Arsitektur MVVM & REST API` (Clean Architecture MVVM, `@Observable` ViewModel, REST API async/await dengan URLSession, mock data `#Preview`).
+### 🍎 [SwiftUI (8 Modul Lengkap)](file:///Users/macbookair/learning/src/content/docs/swiftui/01-mental-model-dan-layout.md)
+1. `01. Mental Model, ViewBuilder & Tata Letak Dasar` (Deklaratif `UI = f(State)`, mengapa view adalah `struct`, container `VStack`/`HStack`/`ZStack`, hukum urutan modifier chaining, Capsule/RoundedRectangle).
+2. `02. State Management Modern (@Observable vs Legacy)` (Framework Observation iOS 17 `@Observable` & `@Bindable` vs legacy `@StateObject`, `@State` lokal, two-way binding `$`, injeksi `@Environment`).
+3. `03. List, NavigationStack Modern & Modals` (Tampilan list `Identifiable`, swipe actions, pull-to-refresh, `NavigationStack` type-safe iOS 16+, `NavigationPath` pop-to-root, dynamic `presentationDetents` sheet).
+4. `04. Form, Input Controls & Manajemen Fokus Keyboard` (Formulir gaya iOS Settings via `Form` & `Section`, kontrol Picker/Toggle/DatePicker, manajemen kursor & dismiss keyboard via `@FocusState`).
+5. `05. Animasi, Transisi & matchedGeometryEffect` (Animasi eksplisit `withAnimation`, transisi asimetris, efek hero animasi zoom kartu App Store via `.matchedGeometryEffect`).
+6. `06. Custom Modifiers, GeometryReader & Layout Protocol` (Pembuatan `ViewModifier` kustom, pembacaan koordinat `GeometryReader`, komunikasi anak-ke-induk `PreferenceKey`, `Layout` protocol FlowLayout).
+7. `07. SwiftData & Persistensi Lokal Modern` (Pengganti Core Data: macro `@Model`, kueri reaktif `@Query`, CRUD `ModelContext`, filter compile-time `#Predicate`, `.modelContainer`).
+8. `08. Arsitektur Clean MVVM, REST API & #Preview` (Struktur Clean MVVM, networking `URLSession` async/await, enum `ViewState` Loading/Success/Error, pembuatan Mock Service untuk Canvas `#Preview`).
 
 ### ☁️ [Terraform IaC (1 Modul)](file:///Users/macbookair/learning/src/content/docs/terraform/01-commands-dan-workflow.md)
 1. `01. Perintah Inti & Alur Kerja` (5 Perintah wajib: `init` $\to$ `validate` $\to$ `plan` $\to$ `apply` $\to$ `destroy`, `-auto-approve`, fungsi file `terraform.tfstate`).
@@ -168,7 +180,7 @@ learning/
 ├── package.json                           # Scripts (dev, build, preview) & dependencies
 ├── astro.config.mjs                       # Konfigurasi Astro Starlight & autogenerate sidebar
 │
-├── src/content/docs/                      # 📖 Sumber Markdown Dokumentasi (101 Modul)
+├── src/content/docs/                      # 📖 Sumber Markdown Dokumentasi (113 Modul)
 │   ├── index.md                           # Landing page portal
 │   ├── javascript/                        # 9 modul JS
 │   ├── typescript/                        # 5 modul TS
@@ -176,11 +188,11 @@ learning/
 │   ├── golang/                            # 6 modul Go
 │   ├── rust/                              # 6 modul Rust
 │   ├── dart/                              # 5 modul Dart
-│   ├── kotlin/                            # 7 modul Kotlin (Core)
-│   ├── swift/                             # 6 modul Swift (Core)
+│   ├── kotlin/                            # 10 modul Kotlin (Lengkap)
+│   ├── swift/                             # 9 modul Swift (Lengkap)
 │   ├── flutter/                           # 5 modul Flutter (Cross-Platform UI)
-│   ├── compose/                           # 6 modul Jetpack Compose (Android UI)
-│   ├── swiftui/                           # 5 modul SwiftUI (iOS & Apple UI)
+│   ├── compose/                           # 9 modul Jetpack Compose (Lengkap)
+│   ├── swiftui/                           # 8 modul SwiftUI (Lengkap)
 │   ├── terraform/                         # 1 modul Terraform (IaC)
 │   ├── postgresql/                        # 5 modul PostgreSQL
 │   ├── mysql/                             # 10 modul MySQL (Lengkap)

@@ -1,75 +1,141 @@
 ---
-title: "03. List & Navigation"
-description: Menampilkan koleksi data dengan List & ForEach, Identifiable, NavigationStack modern iOS 16+, navigationDestination type-safe, dan searchable.
+title: "03. List, NavigationStack Modern & Modals"
+description: Panduan scrollable List di SwiftUI, fitur swipe/delete/refreshable, NavigationStack modern berbasis data type-safe, sheets, dan alerts.
 ---
 
-# 🍎 SwiftUI - Modul 03: List & Navigation
+# 🍎 SwiftUI - Modul 03: List, NavigationStack Modern & Modals
 
-Menyusun daftar data yang dapat di-scroll (*scrolling list*) dan alur navigasi antar-halaman menggunakan komponen modern `NavigationStack`.
+Menampilkan daftar data berulang dan berpindah antar layar (*Navigation*) adalah kebutuhan paling fundamental dalam pembuatan aplikasi iOS. Mulai iOS 16+, Apple memensiunkan `NavigationView` lama dan menggantinya dengan **`NavigationStack`** berbasis data yang type-safe dan stabil.
 
 ---
 
-## 1. `List` & Protokol `Identifiable`
+## 1. Menampilkan Data Berulang: `List` & `ForEach`
 
-`List` di SwiftUI adalah padanan `UITableView` di UIKit atau `LazyColumn` di Jetpack Compose. Untuk performa optimal, item data sebaiknya mengadopsi protokol `Identifiable`:
+`List` di SwiftUI setara dengan `UITableView` di UIKit, yang otomatis menangani *cell recycling* di memori RAM dan gaya tampilan khas iOS.
 
 ```swift
-import SwiftUI
-
-// Model data wajib punya properti 'id' unik:
-struct Produk: Identifiable {
-    let id = UUID()
+// Model data wajib mematuhi Identifiable:
+struct ProdukItem: Identifiable, Hashable {
+    let id: UUID = UUID()
     let nama: String
-    let harga: Int
+    let harga: Double
 }
 
 struct DaftarProdukView: View {
-    let daftar: [Produk] = [
-        Produk(nama: "iPhone 16 Pro", harga: 20000000),
-        Produk(nama: "MacBook Air M3", harga: 18500000),
-        Produk(nama: "iPad Pro", harga: 15000000)
+    @State private var items = [
+        ProdukItem(nama: "MacBook Air M3", harga: 18500000),
+        ProdukItem(nama: "iPad Air M2", harga: 11000000),
+        ProdukItem(nama: "AirPods Pro 2", harga: 3800000)
     ]
+    @State private var searchText = ""
 
     var body: some View {
-        List(daftar) { item in
-            HStack {
-                Text(item.nama)
-                Spacer()
-                Text("Rp \(item.harga)")
-                    .foregroundColor(.secondary)
+        List {
+            ForEach(items) { item in
+                HStack {
+                    Text(item.nama)
+                    Spacer()
+                    Text("Rp \(Int(item.harga))")
+                        .foregroundStyle(.secondary)
+                }
+                // Custom Swipe Action (Geser Kiri/Kanan):
+                .swipeActions(edge: .trailing, allowsFullSwipe: true) {
+                    Button(role: .destructive) {
+                        hapusItem(item)
+                    } label: {
+                        Label("Hapus", systemImage: "trash")
+                    }
+                }
             }
+            .onDelete(perform: hapusBaris) // Geser untuk hapus bawaan
         }
+        // Pull to Refresh bawaan:
+        .refreshable {
+            await muatUlangData()
+        }
+        // Search Bar bawaan iOS:
+        .searchable(text: $searchText, prompt: "Cari produk...")
+    }
+
+    func hapusBaris(at offsets: IndexSet) {
+        items.remove(atOffsets: offsets)
+    }
+
+    func hapusItem(_ item: ProdukItem) {
+        items.removeAll { $0.id == item.id }
+    }
+
+    func muatUlangData() async {
+        try? await Task.sleep(nanoseconds: 1_000_000_000)
     }
 }
 ```
 
 ---
 
-## 2. Modern Navigation: `NavigationStack` (iOS 16+)
+## 2. Navigasi Modern: `NavigationStack` (iOS 16+)
 
-Hindari penggunaan `NavigationView` lama yang sudah deprecated. Gunakan `NavigationStack`:
+Lupakan `NavigationView` yang sering memicu bug *double pop* saat navigasi kembali! `NavigationStack` menggunakan pendekatan berbasis data (*Data-Driven Navigation*):
+
+```mermaid
+flowchart LR
+    Link["NavigationLink(value: produkItem)"] --> Stack["NavigationStack"]
+    Stack --> Dest[".navigationDestination(for: ProdukItem.self)"]
+    Dest --> Screen["DetailProdukScreen(produk: produkItem)"]
+```
 
 ```swift
 struct AppNavView: View {
+    let daftarProduk: [ProdukItem] = [...]
+
     var body: some View {
         NavigationStack {
-            List {
-                // Navigasi sederhana ke halaman tujuan:
-                NavigationLink("Buka Pengaturan Akun") {
-                    Text("Layar Pengaturan Akun")
-                        .navigationTitle("Pengaturan")
-                }
-
-                NavigationLink("Buka Notifikasi") {
-                    Text("Layar Notifikasi")
-                        .navigationTitle("Notifikasi")
+            List(daftarProduk) { produk in
+                // 1. Oper OBJEK DATA ke NavigationLink:
+                NavigationLink(value: produk) {
+                    Text(produk.nama)
                 }
             }
-            .navigationTitle("Menu Utama")
-            .toolbar {
-                ToolbarItem(placement: .topBarTrailing) {
-                    Button(action: { print("Tambah baru") }) {
-                        Image(systemName: "plus")
+            .navigationTitle("Katalog Toko")
+            // 2. Tangkap tipe data ProdukItem dan petakan ke layarnya:
+            .navigationDestination(for: ProdukItem.self) { produkTerpilih in
+                DetailProdukView(produk: produkTerpilih)
+            }
+        }
+    }
+}
+
+struct DetailProdukView: View {
+    let produk: ProdukItem
+
+    var body: some View {
+        VStack(spacing: 20) {
+            Text(produk.nama).font(.largeTitle).bold()
+            Text("Harga: Rp \(Int(produk.harga))")
+        }
+        .navigationTitle("Detail")
+        .navigationBarTitleDisplayMode(.inline)
+    }
+}
+```
+
+### Navigasi Terprogram (Kembali ke Halaman Pertama Seketika):
+Gunakan **`NavigationPath`** untuk berpindah layar melalui kode (seperti tombol *"Selesai Belanja"* yang langsung melompat kembali ke halaman Home):
+
+```swift
+struct RootNavScreen: View {
+    @State private var path = NavigationPath()
+
+    var body: some View {
+        NavigationStack(path: $path) {
+            Button("Buka Halaman 1") {
+                path.append("Layar1")
+            }
+            .navigationDestination(for: String.self) { namaLayar in
+                VStack {
+                    Text("Sedang di: \(namaLayar)")
+                    Button("Reset Kembali ke Home (Pop to Root)") {
+                        path.removeLast(path.count) // Kosongkan path stack seketika!
                     }
                 }
             }
@@ -80,77 +146,47 @@ struct AppNavView: View {
 
 ---
 
-## 3. Type-Safe Navigation: `.navigationDestination(for:)`
+## 3. Menampilkan Modals: Sheets & Alerts
 
-Pola navigasi paling direkomendasikan Apple untuk aplikasi kompleks: pisahkan data tujuan dari tampilan:
-
+### A. Bottom Sheet dengan Ukuran Dinamis (`presentationDetents`)
 ```swift
-struct Kursus: Hashable, Identifiable {
-    let id: Int
-    let judul: String
-}
-
-struct KursusListView: View {
-    let semuaKursus = [
-        Kursus(id: 1, judul: "Belajar Swift Dasar"),
-        Kursus(id: 2, judul: "Mastering SwiftUI"),
-        Kursus(id: 3, judul: "iOS Clean Architecture")
-    ]
+struct LayarDenganSheet: View {
+    @State private var showSheet = false
 
     var body: some View {
-        NavigationStack {
-            List(semuaKursus) { k in
-                // Kirim value data objek Kursus:
-                NavigationLink(k.judul, value: k)
-            }
-            .navigationTitle("Katalog Kursus")
-            // Tangani kemana objek Kursus harus diarahkan:
-            .navigationDestination(for: Kursus.self) { kursus in
-                DetailKursusScreen(kursus: kursus)
-            }
+        Button("Buka Filter Pencarian") {
+            showSheet = true
         }
-    }
-}
-
-struct DetailKursusScreen: View {
-    let kursus: Kursus
-
-    var body: some View {
-        VStack(spacing: 12) {
-            Text("Detail Kursus ID: \(kursus.id)")
-            Text(kursus.judul)
-                .font(.title)
-                .bold()
+        .sheet(isPresented: $showSheet) {
+            VStack {
+                Text("Opsi Filter").font(.headline)
+                Button("Tutup") { showSheet = false }
+            }
+            .padding()
+            // Mengatur ukuran sheet (Setengah layar atau layar penuh):
+            .presentationDetents([.medium, .fraction(0.8), .large])
+            .presentationDragIndicator(.visible) // Indikator garis tarik di atas
         }
-        .navigationTitle("Detail")
     }
 }
 ```
 
----
-
-## 4. Pencarian Cepat dengan `.searchable()`
-
-Hanya butuh 1 modifier untuk menambahkan kotak search bar interaktif ala iOS:
-
+### B. Dialog Konfirmasi (`alert`)
 ```swift
-struct KontakScreen: View {
-    @State private var searchText = ""
-    let kontak = ["Ali", "Budi", "Cindy", "Dewi", "Eka"]
-
-    var filteredKontak: [String] {
-        if searchText.isEmpty { return kontak }
-        return kontak.filter { $0.localizedCaseInsensitiveContains(searchText) }
-    }
+struct LayarDenganAlert: View {
+    @State private var showAlert = false
 
     var body: some View {
-        NavigationStack {
-            List(filteredKontak, id: \.self) { nama in
-                Text(nama)
+        Button("Hapus Akun", role: .destructive) {
+            showAlert = true
+        }
+        .alert("Konfirmasi Tindakan", isPresented: $showAlert) {
+            Button("Batal", role: .cancel) { }
+            Button("Hapus Sekarang", role: .destructive) {
+                // Jalankan proses hapus...
             }
-            .navigationTitle("Daftar Kontak")
-            // Search bar otomatis muncul di atas List:
-            .searchable(text: $searchText, prompt: "Cari nama teman...")
+        } message: {
+            Text("Tindakan ini permanen dan tidak dapat dibatalkan.")
         }
     }
 }

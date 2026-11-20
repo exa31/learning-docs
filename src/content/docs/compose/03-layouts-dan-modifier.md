@@ -1,152 +1,177 @@
 ---
-title: "03. Layouts & Modifiers"
-description: Layout containers inti (Column, Row, Box, Scaffold), hukum urutan Modifier chaining, Alignment vs Arrangement, dan Spacer weight.
+title: "03. Layouts, Modifiers & Scaffold Material 3"
+description: Panduan tata letak Jetpack Compose (Column, Row, Box), struktur Scaffold, aturan mutlak urutan modifier chaining, serta Alignment vs Arrangement.
 ---
 
-# 📱 Jetpack Compose - Modul 03: Layouts & Modifiers
+# 📱 Jetpack Compose - Modul 03: Layouts, Modifiers & Scaffold
 
-Menyusun layout di Compose tidak memerlukan XML yang berlapis-lapis. Semua layout dibangun dari 3 container fundamental (`Column`, `Row`, `Box`) dan disesuaikan perilakunya menggunakan **`Modifier`**.
+Di Jetpack Compose, tata letak antarmuka dibangun dengan menyusun komponen penampung dasar (**`Column`**, **`Row`**, **`Box`**), memperkaya perilakunya menggunakan **`Modifier`**, dan membungkus layar dengan arsitektur standar Material Design 3 melalui **`Scaffold`**.
 
 ---
 
-## 1. Tiga Container Fundamental
+## 1. 3 Komponen Penampung Dasar
 
-### A. `Column` (Vertikal / Padanan LinearLayout vertical)
-Menyusun elemen anak secara vertikal dari atas ke bawah:
-```kotlin
-Column(
-    modifier = Modifier.fillMaxWidth().padding(16.dp),
-    verticalArrangement = Arrangement.spacedBy(8.dp),
-    horizontalAlignment = Alignment.CenterHorizontally
-) {
-    Text("Judul Kartu", style = MaterialTheme.typography.titleLarge)
-    Text("Deskripsi singkat konten kartu.")
-}
+```mermaid
+flowchart TD
+    subgraph Layouts["Layout Dasar Compose"]
+        Col["1. Column<br/>Menyusun elemen secara VERTIKAL<br/>(Atas ke Bawah)"]
+        Rw["2. Row<br/>Menyusun elemen secara HORIZONTAL<br/>(Kiri ke Kanan)"]
+        Bx["3. Box<br/>Menumpuk elemen di sumbu Z<br/>(Overlap / Mirip FrameLayout)"]
+    end
 ```
 
-### B. `Row` (Horizontal / Padanan LinearLayout horizontal)
-Menyusun elemen anak secara mendatar dari kiri ke kanan:
+### A. Column & Row: Alignment vs Arrangement
+Seringkali developer pemula bingung membedakan antara *Alignment* dan *Arrangement*:
+
+- **Arrangement**: Mengatur distribusi ruang kosong di sepanjang **Sumbu Utama (*Main Axis*)**.
+  - Pada `Column`: Sumbu vertikal (atas-bawah).
+  - Pada `Row`: Sumbu horizontal (kiri-kanan).
+  - Pilihan populer: `Arrangement.SpaceBetween`, `Arrangement.SpaceEvenly`, `Arrangement.spacedBy(12.dp)`.
+- **Alignment**: Mengatur posisi elemen di sepanjang **Sumbu Silang (*Cross Axis*)**.
+  - Pada `Column`: Sumbu horizontal (`Alignment.CenterHorizontally`, `Alignment.Start`).
+  - Pada `Row`: Sumbu vertikal (`Alignment.CenterVertically`, `Alignment.Bottom`).
+
 ```kotlin
 Row(
     modifier = Modifier.fillMaxWidth(),
-    horizontalArrangement = Arrangement.SpaceBetween,
-    verticalAlignment = Alignment.CenterVertically
+    horizontalArrangement = Arrangement.SpaceBetween, // Main Axis
+    verticalAlignment = Alignment.CenterVertically    // Cross Axis
 ) {
-    Text("Total Harga")
-    Text("Rp 150.000", fontWeight = FontWeight.Bold)
+    Text("Total Tagihan")
+    Text("Rp 500.000", fontWeight = FontWeight.Bold)
 }
 ```
 
-### C. `Box` (Tumpukan Z-Index / Padanan FrameLayout atau Stack Flutter)
-Menumpuk elemen anak di atas elemen lainnya (Z-axis). Sangat cocok untuk badge notifikasi, overlay gambar, atau placeholder:
+### B. Box (Menumpuk Elemen di Sumbu Z)
 ```kotlin
-Box(modifier = Modifier.size(60.dp)) {
-    Icon(Icons.Default.Notifications, contentDescription = "Lonceng")
-    // Badge angka merah di pojok kanan atas:
-    Box(
+Box(modifier = Modifier.size(200.dp)) {
+    // 1. Gambar ditaruh di lapisan terbawah:
+    Image(
+        painter = painterResource(id = R.drawable.banner),
+        contentDescription = "Banner",
+        modifier = Modifier.fillMaxSize()
+    )
+
+    // 2. Badge diskon ditaruh menumpuk di pojok kanan atas:
+    Text(
+        text = "DISKON 50%",
+        color = Color.White,
         modifier = Modifier
-            .size(18.dp)
-            .background(Color.Red, shape = CircleShape)
             .align(Alignment.TopEnd)
-    ) {
-        Text("3", color = Color.White, modifier = Modifier.align(Alignment.Center))
-    }
+            .background(Color.Red, shape = RoundedCornerShape(4.dp))
+            .padding(horizontal = 8.dp, vertical = 4.dp)
+    )
 }
 ```
 
 ---
 
-## 2. Struktur Layar Utuh: `Scaffold`
+## 2. Aturan Mutlak Modifier Chaining (Urutan Sangat Menentukan!)
 
-`Scaffold` menyediakan struktur kerangka Material Design standar untuk aplikasi (TopAppBar, BottomNavigation, FloatingActionButton, SnackbarHost):
+Modifier adalah rantai konfigurasi yang diterapkan dari **atas ke bawah (kiri ke kanan)**. Mengubah urutan method modifier akan **mengubah tampilan dan perilaku komponen secara radikal**!
 
+```mermaid
+flowchart LR
+    subgraph Case1["Kasus A: Padding Dulu -> Background"]
+        M1["Modifier.padding(16.dp).background(Color.Blue)"]
+        Res1["Kotak biru HANYA melingkupi teks di dalam padding!<br/>Area padding tetap putih."]
+    end
+
+    subgraph Case2["Kasus B: Background Dulu -> Padding"]
+        M2["Modifier.background(Color.Blue).padding(16.dp)"]
+        Res2["Kotak biru MELEBAR penuh mencakup seluruh padding!"]
+    end
+```
+
+### Perhatikan Urutan Interaksi Klik (`clickable`):
 ```kotlin
-@Composable
-fun LayarUtama() {
-    val snackbarHostState = remember { SnackbarHostState() }
+// 1. Ripple Effect Terpotong (Hanya area teks yang bisa diklik):
+Text(
+    text = "Klik Saya",
+    modifier = Modifier
+        .clickable { }        // ⚠️ Clickable dipasang SEBELUM padding!
+        .padding(24.dp)
+)
 
-    Scaffold(
-        topBar = {
-            TopAppBar(title = { Text("Dev Cheatsheets") })
-        },
-        floatingActionButton = {
-            FloatingActionButton(onClick = { /* aksi */ }) {
-                Icon(Icons.Default.Add, contentDescription = "Tambah")
-            }
-        },
-        snackbarHost = { SnackbarHost(snackbarHostState) }
-    ) { paddingValues ->
-        // Wajib gunakan paddingValues agar konten tidak tertutup TopBar/BottomBar!
-        Box(modifier = Modifier.fillMaxSize().padding(paddingValues)) {
-            Text("Konten Utama Di Sini")
-        }
-    }
-}
+// 2. Ripple Effect Penuh (Optimal untuk jempol pengguna!):
+Text(
+    text = "Klik Saya",
+    modifier = Modifier
+        .padding(24.dp)
+        .clickable { }        // ✅ Clickable mencakup seluruh area sentuh!
+)
 ```
 
 ---
 
-## 3. Hukum Urutan `Modifier` (Chaining Order Matters!)
+## 3. Proporsi Fleksibel dengan `Modifier.weight`
 
-> ⚠️ **ATURAN PENTING**: Di Compose, **urutan pemanggilan method pada `Modifier` dieksekusi berurutan dari atas ke bawah**. Efeknya bisa sangat berbeda drastis!
-
-### Kasus: Margin vs Padding
-Compose tidak punya properti `margin`. Efek margin dicapai dengan urutan chaining:
-
-```kotlin
-// 1. PADDING BIASA (Background menutupi seluruh padding):
-Modifier
-    .background(Color.Blue)
-    .padding(16.dp)
-
-// 2. SEPERTI MARGIN (Jarak luar dulu, baru background di dalamnya):
-Modifier
-    .padding(16.dp)         // Berperan sebagai Margin luar
-    .background(Color.Blue) // Background hanya mewarnai isi dalam
-    .padding(8.dp)          // Berperan sebagai Padding dalam
-```
-
-### Kasus: Clickable Ripple Effect
-```kotlin
-//  BENAR: Clip dulu bentuknya, baru pasang clickable (efek ripple bulat rapi):
-Modifier
-    .clip(RoundedCornerShape(12.dp))
-    .clickable { /* aksi */ }
-
-// ❌ SALAH: Pasang clickable dulu baru di-clip (efek ripple persegi bocor ke luar sudut):
-Modifier
-    .clickable { /* aksi */ }
-    .clip(RoundedCornerShape(12.dp))
-```
-
----
-
-## 4. Alignment vs Arrangement
-
-- **`Arrangement`**: Mengatur **jarak & distribusi ruang kosong** di sumbu utama (*Main Axis*).
-  - Pilihan: `Arrangement.SpaceBetween`, `Arrangement.Center`, `Arrangement.spacedBy(8.dp)`.
-- **`Alignment`**: Mengatur **posisi penjajaran** di sumbu silang (*Cross Axis*).
-  - Di Column: `Alignment.Start`, `Alignment.CenterHorizontally`, `Alignment.End`.
-  - Di Row: `Alignment.Top`, `Alignment.CenterVertically`, `Alignment.Bottom`.
-
----
-
-## 5. Fleksibilitas Ruang: `Spacer` & `Modifier.weight`
-
-Untuk membagi porsi ruang kosong antar elemen secara proporsional:
+Gunakan `.weight()` di dalam `Row` atau `Column` untuk membagi ruang layar secara proporsional mirip flexbox:
 
 ```kotlin
 Row(modifier = Modifier.fillMaxWidth()) {
-    // Tombol Kiri mengambil 1 bagian (25%)
-    Button(onClick = {}, modifier = Modifier.weight(1f)) {
-        Text("Batal")
+    // Kolom kiri mengambil 70% sisa ruang:
+    Text("Judul Artikel Panjang", modifier = Modifier.weight(0.7f))
+
+    // Kolom kanan mengambil 30% sisa ruang:
+    Button(onClick = { }, modifier = Modifier.weight(0.3f)) {
+        Text("Buka")
     }
+}
+```
 
-    Spacer(modifier = Modifier.width(8.dp))
+---
 
-    // Tombol Kanan mengambil 3 bagian (75%)
-    Button(onClick = {}, modifier = Modifier.weight(3f)) {
-        Text("Konfirmasi Pembayaran")
+## 4. Struktur Layar Standar: Scaffold Material 3
+
+`Scaffold` menyediakan kerangka kerja layout Material Design yang terintegrasi rapi dengan TopAppBar, BottomNavigationBar, FloatingActionButton, dan SnackbarHost:
+
+```kotlin
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun LayarUtamaApp() {
+    val snackbarHostState = remember { SnackbarHostState() }
+    val scope = rememberCoroutineScope()
+
+    Scaffold(
+        topBar = {
+            TopAppBar(
+                title = { Text("Dev Portal") },
+                colors = TopAppBarDefaults.topAppBarColors(
+                    containerColor = MaterialTheme.colorScheme.primaryContainer
+                )
+            )
+        },
+        bottomBar = {
+            NavigationBar {
+                NavigationBarItem(
+                    selected = true,
+                    onClick = { },
+                    icon = { Icon(Icons.Default.Home, contentDescription = "Home") },
+                    label = { Text("Home") }
+                )
+            }
+        },
+        floatingActionButton = {
+            FloatingActionButton(onClick = {
+                scope.launch {
+                    snackbarHostState.showSnackbar("Tombol FAB ditekan!")
+                }
+            }) {
+                Icon(Icons.Default.Add, contentDescription = "Tambah")
+            }
+        },
+        snackbarHost = { SnackbarHost(hostState = snackbarHostState) }
+    ) { innerPadding ->
+        // ⚠️ SANGAT PENTING: Wajib teruskan innerPadding ke konten utama
+        // agar konten tidak tertabrak atau tertutup oleh TopBar / BottomBar!
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(innerPadding)
+        ) {
+            Text("Konten Layar Utama Berada di Sini!")
+        }
     }
 }
 ```

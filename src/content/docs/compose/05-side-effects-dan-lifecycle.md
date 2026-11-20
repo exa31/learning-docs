@@ -1,73 +1,45 @@
 ---
-title: "05. Side Effects & Lifecycle"
-description: Menghubungkan dunia luar ke Compose secara aman via LaunchedEffect, rememberCoroutineScope, DisposableEffect, dan one-off events.
+title: "05. Side Effects & Lifecycle Awareness"
+description: Panduan tuntas efek samping Jetpack Compose, LaunchedEffect, rememberCoroutineScope, DisposableEffect untuk cleanup, dan rememberUpdatedState.
 ---
 
-# 📱 Jetpack Compose - Modul 05: Side Effects & Lifecycle
+# 📱 Jetpack Compose - Modul 05: Side Effects & Lifecycle Awareness
 
-Fungsi Composable idealnya adalah fungsi murni (*pure function*) yang hanya menggambar UI. Namun, aplikasi nyata butuh berinteraksi dengan dunia luar: memanggil API, memunculkan Snackbar, mendaftarkan sensor, atau berpindah halaman. Jembatan untuk operasi ini disebut **Effect Handlers**.
-
----
-
-## 1. Peta Cepat: Kapan Harus Pakai Apa?
-
-| Kasus Penggunaan | Effect yang Tepat | Contoh Skenario |
-|---|---|---|
-| Menjalankan coroutine asinkronus saat layar dibuka | **`LaunchedEffect`** | Mengambil data API pertama kali, animasi otomatis |
-| Menjalankan coroutine dari callback tombol | **`rememberCoroutineScope`** | Klik tombol simpan $\to$ tampilkan Snackbar |
-| Butuh pembersihan saat layar ditutup (*Cleanup*) | **`DisposableEffect`** | Mendaftarkan sensor kompas, lifecycle observer |
-| Update objek eksternal setiap kali recomposition sukses | **`SideEffect`** | Mengupdate warna status bar Android |
+Fungsi Composable idealnya adalah fungsi murni (*Pure Function*): hanya menerima state dan merender UI. Namun, aplikasi nyata membutuhkan **Efek Samping (*Side Effects*)**, seperti memicu panggilan REST API saat layar pertama kali dibuka, menampilkan Snackbar, atau mendengarkan sensor GPS.
 
 ---
 
-## 2. `LaunchedEffect` (Coroutine Sadar Lifecycle)
+## 1. Matriks 5 Effect Handlers Jetpack Compose
 
-`LaunchedEffect` akan membuat Coroutine Scope baru yang otomatis dibatalkan jika Composable keluar dari komposisi (*leaves composition*):
+| Handler | Sifat Eksekusi | Kapan Dibatalkan / Restart? | Kasus Penggunaan Utama |
+|---|---|---|---|
+| **`LaunchedEffect`** | Coroutine Asinkron | Dibatalkan saat `key` berubah atau composable meninggalkan layar. | Memuat data API saat layar dibuka, animasi awal, timer. |
+| **`rememberCoroutineScope`** | Coroutine Scope | Terikat pada siklus hidup Composition pemanggil. | Memulai coroutine dari event klik tombol (`onClick = { scope.launch { ... } }`). |
+| **`DisposableEffect`** | Sinkron dengan Cleanup | Menjalankan blok **`onDispose`** saat `key` berubah / keluar. | Registrasi BroadcastReceiver, Sensor, Observer Lifecycle. |
+| **`rememberUpdatedState`** | Helper State | Tidak pernah me-restart efek samping yang sedang berjalan. | Menangkap lambda callback terbaru di dalam `LaunchedEffect` berdurasi panjang. |
+| **`SideEffect`** | Sinkron Setiap Recompose | Dijalankan setiap kali recomposition berhasil diselesaikan. | Sinkronisasi state Compose ke library eksternal non-Compose (Analytics, Firebase). |
+
+---
+
+## 2. Praktik Kasus Nyata
+
+### A. `LaunchedEffect`: Memuat Data & Menampilkan Snackbar
+`LaunchedEffect` akan berjalan saat composable pertama kali memasuki Composition Tree. Jika parameter `key1` berubah, coroutine lama **akan otomatis dibatalkan** dan coroutine baru dimulai!
 
 ```kotlin
 @Composable
-fun DetailUserScreen(userId: Int, viewModel: UserViewModel) {
-    // Dipanggil saat pertama kali Composable masuk ke layar.
-    // Jika nilai 'userId' berubah, coroutine lama dibatalkan dan dimulai ulang dengan ID baru!
-    LaunchedEffect(key1 = userId) {
-        viewModel.ambilDetailUser(userId)
-    }
-
-    Text("Menampilkan data user #$userId")
-}
-```
-
-> ⚠️ **Catatan**: Jika kamu ingin suatu aksi hanya berjalan **satu kali saja seumur hidup Composable**, gunakan `key1 = Unit` atau `key1 = true`.
-
----
-
-## 3. `rememberCoroutineScope` (Untuk Callback Tombol)
-
-Fungsi tombol `onClick` adalah lambda biasa (bukan fungsi `suspend`). Jika ingin memanggil suspend function (seperti menampilkan Snackbar), gunakan `rememberCoroutineScope`:
-
-```kotlin
-@Composable
-fun TombolSimpanWithSnackbar() {
+fun HalamanDetailUser(userId: String, viewModel: UserViewModel) {
     val snackbarHostState = remember { SnackbarHostState() }
-    val scope = rememberCoroutineScope() // Scope terikat dengan siklus hidup view
 
-    Scaffold(snackbarHost = { SnackbarHost(snackbarHostState) }) { padding ->
-        Button(
-            onClick = {
-                // Jalankan suspend function di dalam scope:
-                scope.launch {
-                    val result = snackbarHostState.showSnackbar(
-                        message = "Data berhasil disimpan!",
-                        actionLabel = "Lihat"
-                    )
-                    if (result == SnackbarResult.ActionPerformed) {
-                        println("User menekan tombol aksi snackbar")
-                    }
-                }
-            },
-            modifier = Modifier.padding(padding)
-        ) {
-            Text("Simpan Perubahan")
+    // 1. Panggil fetchUser saat userId berubah:
+    LaunchedEffect(key1 = userId) {
+        viewModel.fetchUserById(userId)
+    }
+
+    // 2. Dengarkan One-off Event Channel dari ViewModel:
+    LaunchedEffect(key1 = Unit) { // Unit = Hanya dijalankan SEKALI seumur hidup layar
+        viewModel.eventFlow.collect { pesan ->
+            snackbarHostState.showSnackbar(pesan)
         }
     }
 }
@@ -75,31 +47,55 @@ fun TombolSimpanWithSnackbar() {
 
 ---
 
-## 4. `DisposableEffect` (Untuk Listener yang Butuh Cleanup)
-
-Jika kamu mendaftarkan listener yang wajib dibersihkan agar tidak terjadi kebocoran memori (*memory leak*):
+### B. `rememberCoroutineScope`: Menjalankan Asinkron dari Tombol
+Anda **tidak boleh** memanggil fungsi suspend langsung di dalam lambda klik tombol biasa. Gunakan `rememberCoroutineScope`:
 
 ```kotlin
-import androidx.lifecycle.Lifecycle
-import androidx.lifecycle.LifecycleEventObserver
-
 @Composable
-fun ObserveLifecycle(lifecycleOwner: LifecycleOwner, onResume: () -> Unit) {
-    DisposableEffect(lifecycleOwner) {
-        val observer = LifecycleEventObserver { _, event ->
-            if (event == Lifecycle.Event.ON_RESUME) {
-                onResume()
+fun TombolSimpanData(onSimpan: suspend () -> Unit) {
+    // Ambil coroutine scope yang aman:
+    val coroutineScope = rememberCoroutineScope()
+    var isLoading by remember { mutableStateOf(false) }
+
+    Button(
+        onClick = {
+            // Luncurkan coroutine dari lambda tombol:
+            coroutineScope.launch {
+                isLoading = true
+                onSimpan()
+                isLoading = false
             }
         }
+    ) {
+        if (isLoading) CircularProgressIndicator() else Text("Simpan")
+    }
+}
+```
 
-        // Pasang listener:
-        lifecycleOwner.lifecycle.addObserver(observer)
+---
 
-        // ⚠️ onDispose WAJIB ditulis di akhir blok:
+### C. `DisposableEffect`: Pembersihan Resource Terjamin
+Jika efek samping Anda membutuhkan proses pembersihan (*Teardown / Unregister*), gunakan `DisposableEffect`:
+
+```kotlin
+@Composable
+fun SensorMonitor(context: Context) {
+    DisposableEffect(key1 = context) {
+        val sensorManager = context.getSystemService(Context.SENSOR_SERVICE) as SensorManager
+        val sensor = sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER)
+        
+        val listener = object : SensorEventListener {
+            override fun onSensorChanged(event: SensorEvent?) { /* Baca koordinat */ }
+            override fun onAccuracyChanged(sensor: Sensor?, accuracy: Int) {}
+        }
+
+        // 1. Registrasi sensor:
+        sensorManager.registerListener(listener, sensor, SensorManager.SENSOR_DELAY_UI)
+
+        // 2. Blok Wajib: Bersihkan sensor saat composable dihancurkan!
         onDispose {
-            // Lepas listener saat Composable dihancurkan:
-            lifecycleOwner.lifecycle.removeObserver(observer)
-            println("Listener berhasil dibersihkan dari RAM")
+            sensorManager.unregisterListener(listener)
+            println("Sensor listener berhasil dicabut (Aman dari memory leak)!")
         }
     }
 }
@@ -107,34 +103,55 @@ fun ObserveLifecycle(lifecycleOwner: LifecycleOwner, onResume: () -> Unit) {
 
 ---
 
-## 5. Pola Menangani One-Off Events (Navigasi / Pop-up)
+### D. Penyelamat Callback: `rememberUpdatedState`
 
-Jangan gunakan `StateFlow` biasa untuk event satu kali (seperti navigasi atau toast), karena saat layar diputar, event bisa terpanggil ulang secara tidak sengaja.
+Bayangkan skenario ini: Anda memiliki `LaunchedEffect` dengan timer 5 detik, namun parameter callback `onTimeout` yang dioper dari parent berubah di detik ke-2:
 
-Gunakan **`SharedFlow`** atau **`Channel`** di ViewModel, dan dengarkan dengan `LaunchedEffect` di UI:
+```mermaid
+flowchart TD
+    subgraph Problem["Masalah Tanpa rememberUpdatedState"]
+        E1["LaunchedEffect(Unit)"] --> T1["Menangkap lambda onTimeout LAMA"]
+        P["Parent Composable berubah"] --> T2["onTimeout BARU tidak tertangkap karena key1 = Unit tidak restart!"]
+    end
+
+    subgraph Solution["Solusi dengan rememberUpdatedState"]
+        E2["currentOnTimeout by rememberUpdatedState(onTimeout)"]
+        E2 --> Safe["Timer tetap jalan 5 detik TANPA restart, dan mengeksekusi lambda TERBARU!"]
+    end
+```
 
 ```kotlin
-// Di ViewModel:
-private val _eventFlow = Channel<UiEvent>()
-val eventFlow = _eventFlow.receiveAsFlow()
+@Composable
+fun SplashTimerScreen(onTimeout: () -> Unit) {
+    // Selalu referensikan lambda terbaru tanpa memicu restart timer!
+    val currentOnTimeout by rememberUpdatedState(onTimeout)
 
-fun login() {
-    viewModelScope.launch {
-        // ... logic login ...
-        _eventFlow.send(UiEvent.NavigasiKeHome)
+    LaunchedEffect(key1 = Unit) {
+        delay(5000)
+        currentOnTimeout() // Memanggil versi paling mutakhir dari onTimeout!
     }
 }
+```
 
-// Di Composable Screen:
+---
+
+### E. Lifecycle Event Awareness (AndroidX Lifecycle 2.8+)
+Mendengarkan event siklus hidup Activity/Fragment secara deklaratif:
+
+```kotlin
+import androidx.lifecycle.compose.LifecycleEventEffect
+import androidx.lifecycle.Lifecycle
+
 @Composable
-fun LoginScreen(viewModel: LoginViewModel, onNavigateHome: () -> Unit) {
-    LaunchedEffect(Unit) {
-        viewModel.eventFlow.collect { event ->
-            when (event) {
-                is UiEvent.NavigasiKeHome -> onNavigateHome()
-                is UiEvent.ShowToast -> { /* show */ }
-            }
-        }
+fun VideoPlayerScreen(player: VideoPlayer) {
+    // Otomatis resume video saat aplikasi aktif kembali:
+    LifecycleEventEffect(Lifecycle.Event.ON_RESUME) {
+        player.play()
+    }
+
+    // Otomatis pause video saat user beralih ke aplikasi lain:
+    LifecycleEventEffect(Lifecycle.Event.ON_PAUSE) {
+        player.pause()
     }
 }
 ```

@@ -1,44 +1,42 @@
 ---
-title: "04. Lazy Layouts & Lists"
-description: Pengganti RecyclerView (LazyColumn, LazyRow, LazyVerticalGrid), optimasi stable key, sticky header, dan pagination infinite scroll.
+title: "04. Lazy Layouts, Sticky Headers & Paging 3"
+description: Panduan pengganti modern RecyclerView (LazyColumn & LazyRow), kunci stabilitas item key, sticky headers, dan integrasi AndroidX Paging 3.
 ---
 
-# 📱 Jetpack Compose - Modul 04: Lazy Layouts & Lists
+# 📱 Jetpack Compose - Modul 04: Lazy Layouts, Sticky Headers & Paging 3
 
-Jika kamu memiliki daftar data yang panjang (puluhan hingga ribuan item), jangan gunakan `Column` biasa karena semua item akan langsung dibuat di memori sekaligus. Gunakan **Lazy Layouts** (`LazyColumn`, `LazyRow`, `LazyVerticalGrid`) yang hanya me-render item yang sedang terlihat di layar (*view recycling* otomatis tanpa adapter XML).
+Jika Anda memiliki 5.000 item data, menampilkannya di dalam `Column` biasa akan membuat aplikasi Android langsung mengalami **Out of Memory (OOM) Crash**, karena `Column` me-render seluruh 5.000 composable ke memori sekaligus. 
+
+Solusinya adalah **Lazy Layouts** (`LazyColumn`, `LazyRow`, `LazyVerticalGrid`) yang hanya memproses item yang **sedang terlihat di layar kaca HP pengguna**.
 
 ---
 
-## 1. `LazyColumn` (Padanan Modern RecyclerView)
+## 1. Anatomi Pengganti RecyclerView: `LazyColumn`
+
+Lupakan era kelam di mana Anda harus menulis ratusan baris XML, Adapter class, `onCreateViewHolder`, dan `onBindViewHolder`. Di Compose, menampilkan daftar jutaan baris data semudah ini:
 
 ```kotlin
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 
-data class Kontak(val id: Int, val nama: String, val nomorHp: String)
-
 @Composable
-fun DaftarKontakScreen(kontakList: List<Kontak>) {
+fun DaftarKontakList(kontakList: List<KontakModel>) {
     LazyColumn(
-        contentPadding = PaddingValues(16.dp), // Padding sekeliling list
-        verticalArrangement = Arrangement.spacedBy(8.dp) // Jarak antar item
+        modifier = Modifier.fillMaxSize(),
+        contentPadding = PaddingValues(16.dp),
+        verticalArrangement = Arrangement.spacedBy(8.dp)
     ) {
-        // 1. Single item (misalnya Header):
+        // 1. Header statis:
         item {
-            Text("Daftar Teman Kamu", style = MaterialTheme.typography.titleMedium)
+            Text("Daftar Teman", style = MaterialTheme.typography.headlineMedium)
         }
 
-        // 2. Daftar banyak item dinamis dengan KEY:
+        // 2. Daftar berulang dinamis:
         items(
             items = kontakList,
-            key = { kontak -> kontak.id } // ⚠️ WAJIB: Berikan key unik!
+            key = { kontak -> kontak.id } // ⚠️ SANGAT PENTING: Kunci Unik!
         ) { kontak ->
-            ItemKontakCard(kontak)
-        }
-
-        // 3. Footer di bawah list:
-        item {
-            Text("Akhir dari daftar", modifier = Modifier.padding(16.dp))
+            ItemKontakCard(kontak = kontak)
         }
     }
 }
@@ -46,106 +44,146 @@ fun DaftarKontakScreen(kontakList: List<Kontak>) {
 
 ---
 
-## 2. Kenapa `key` Sangat Wajib Diberikan?
+## 2. Mengapa Parameter `key = { ... }` Wajib Hukumnya?
 
-Secara default, jika kamu tidak memberikan parameter `key = { it.id }`, Compose akan menggunakan posisi indeks array sebagai identitas item.
-- **Bahayanya**: Jika kamu menghapus atau menyisipkan item di tengah-tengah list, Compose akan merender ulang seluruh item di bawahnya!
-- **Dengan `key` Unik**: Compose tahu persis item mana yang berpindah, ditambah, atau dihapus, sehingga animasi list berjalan mulus dan performanya sangat kencang.
+Secara default, jika Anda tidak menyediakan parameter `key`, Compose membedakan item berdasarkan **posisi indeks integer (0, 1, 2, ...)**.
 
----
+```mermaid
+flowchart TD
+    subgraph TanpaKey["❌ Tanpa Key (Berdasarkan Posisi Indeks)"]
+        A1["Hapus Item di Posisi 0"] --> A2["Item posisi 1 bergeser ke posisi 0"]
+        A2 --> A3["💥 SEMUA item di bawahnya kehilangan state internal & animasi berantakan!"]
+    end
 
-## 3. `LazyRow` & `LazyVerticalGrid`
-
-### A. `LazyRow` (Scroll Mendatar)
-```kotlin
-LazyRow(
-    horizontalArrangement = Arrangement.spacedBy(12.dp),
-    contentPadding = PaddingValues(horizontal = 16.dp)
-) {
-    items(kategoriList, key = { it.id }) { kategori ->
-        KategoriChip(kategori)
-    }
-}
+    subgraph DenganKey["✅ Dengan Key Unik: key = { it.id }"]
+        B1["Hapus Item ID: 101"] --> B2["Compose tahu persis objek 101 yang dibuang"]
+        B2 --> B3["Item lain TETAP mempertahankan state & teranimasi halus!"]
+    end
 ```
 
-### B. `LazyVerticalGrid` (Grid Multi-Kolom)
+### Animasi Pergeseran Otomatis (`animateItem`):
+Mulai Compose 1.7+, cukup tambahkan modifier ini agar item yang berpindah posisi teranimasi secara otomatis:
 ```kotlin
-import androidx.compose.foundation.lazy.grid.GridCells
-import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
-import androidx.compose.foundation.lazy.grid.items
-
-LazyVerticalGrid(
-    columns = GridCells.Fixed(2), // 2 Kolom tetap
-    contentPadding = PaddingValues(8.dp),
-    verticalArrangement = Arrangement.spacedBy(8.dp),
-    horizontalArrangement = Arrangement.spacedBy(8.dp)
-) {
-    items(produkList, key = { it.id }) { produk ->
-        ProdukGridItem(produk)
-    }
+items(kontakList, key = { it.id }) { kontak ->
+    ItemKontakCard(
+        kontak = kontak,
+        modifier = Modifier.animateItem() // Animasi halus saat list di-reorder atau dihapus!
+    )
 }
 ```
 
 ---
 
-## 4. Sticky Headers (Header Melayang)
+## 3. Fitur Canggih: Sticky Headers
 
-Sangat berguna untuk list yang dikelompokkan berdasarkan abjad atau tanggal transaksi (header akan menempel di atas sampai grup berikutnya lewat):
+Menampilkan header yang menempel di bagian paling atas layar saat user melakukan scrolling (seperti pengelompokan tanggal transaksi atau abjad kontak telepon):
 
 ```kotlin
-val kontakGrup: Map<Char, List<Kontak>> = kontakList.groupBy { it.nama.first() }
+@OptIn(ExperimentalFoundationApi::class)
+@Composable
+fun TransaksiGroupedScreen(transaksiMap: Map<String, List<Transaksi>>) {
+    LazyColumn {
+        transaksiMap.forEach { (tanggal, daftarTransaksi) ->
+            // Sticky Header menempel di atas saat di-scroll:
+            stickyHeader {
+                Text(
+                    text = tanggal,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .background(MaterialTheme.colorScheme.surfaceVariant)
+                        .padding(8.dp),
+                    fontWeight = FontWeight.Bold
+                )
+            }
 
-LazyColumn {
-    kontakGrup.forEach { (hurufAwal, itemsDiGrup) ->
-        // Header melayang (Sticky):
-        stickyHeader {
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .background(MaterialTheme.colorScheme.surfaceVariant)
-                    .padding(8.dp)
+            items(daftarTransaksi, key = { it.id }) { trx ->
+                ItemTransaksiRow(trx)
+            }
+        }
+    }
+}
+```
+
+---
+
+## 4. Mengontrol & Memantau Posisi Scroll (`LazyListState`)
+
+```kotlin
+@Composable
+fun LayarDenganScrollToTop() {
+    val listState = rememberLazyListState()
+    val scope = rememberCoroutineScope()
+
+    // Tampilkan tombol "Kembali ke Atas" hanya jika user sudah scroll melewati item ke-5:
+    val showButton by remember {
+        derivedStateOf { listState.firstVisibleItemIndex > 5 }
+    }
+
+    Box(modifier = Modifier.fillMaxSize()) {
+        LazyColumn(state = listState) {
+            items(100) { Text("Baris Data ke-$it", modifier = Modifier.padding(16.dp)) }
+        }
+
+        if (showButton) {
+            FloatingActionButton(
+                onClick = {
+                    scope.launch {
+                        // Scroll halus kembali ke baris paling atas:
+                        listState.animateScrollToItem(index = 0)
+                    }
+                },
+                modifier = Modifier.align(Alignment.BottomEnd).padding(16.dp)
             ) {
-                Text(hurufAwal.toString(), fontWeight = FontWeight.Bold)
+                Icon(Icons.Default.KeyboardArrowUp, contentDescription = "Top")
+            }
+        }
+    }
+}
+```
+
+---
+
+## 5. Infinite Scroll / Pagination dengan AndroidX Paging 3
+
+Untuk memuat data dari REST API secara bertahap (misal 20 item per halaman saat user mencapai dasar layar):
+
+```kotlin
+// build.gradle.kts:
+// implementation("androidx.paging:paging-compose:3.3.4")
+
+@Composable
+fun PagingProductScreen(viewModel: ProductPagingViewModel = hiltViewModel()) {
+    // 1. Ubah Flow PagingData menjadi LazyPagingItems:
+    val products = viewModel.productFlow.collectAsLazyPagingItems()
+
+    LazyColumn {
+        items(
+            count = products.itemCount,
+            key = { index -> products[index]?.id ?: index }
+        ) { index ->
+            val product = products[index]
+            if (product != null) {
+                ProductCard(product)
             }
         }
 
-        items(itemsDiGrup, key = { it.id }) { kontak ->
-            ItemKontakCard(kontak)
-        }
-    }
-}
-```
-
----
-
-## 5. Pola Deteksi Infinite Scroll (Pagination)
-
-Menggunakan `LazyListState` untuk mendeteksi kapan pengguna sudah men-scroll mendekati ujung bawah layar:
-
-```kotlin
-@Composable
-fun InfiniteList(viewModel: FeedViewModel) {
-    val listState = rememberLazyListState()
-
-    // Amati apakah sudah mendekati item paling bawah:
-    val shouldLoadMore by remember {
-        derivedStateOf {
-            val totalItems = listState.layoutInfo.totalItemsCount
-            val lastVisibleIndex = listState.layoutInfo.visibleItemsInfo.lastOrNull()?.index ?: 0
-            // Jika sisa 2 item lagi sebelum ujung bawah, muat halaman berikutnya:
-            totalItems > 0 && lastVisibleIndex >= (totalItems - 2)
-        }
-    }
-
-    LaunchedEffect(shouldLoadMore) {
-        if (shouldLoadMore) {
-            viewModel.muatHalamanBerikutnya()
-        }
-    }
-
-    LazyColumn(state = listState) {
-        items(viewModel.daftarPost, key = { it.id }) { post ->
-            PostCard(post)
+        // 2. Tangani Loading State saat halaman berikutnya sedang dimuat di bawah:
+        when (products.loadState.append) {
+            is LoadState.Loading -> {
+                item {
+                    CircularProgressIndicator(
+                        modifier = Modifier.fillMaxWidth().padding(16.dp).wrapContentWidth()
+                    )
+                }
+            }
+            is LoadState.Error -> {
+                item {
+                    Button(onClick = { products.retry() }) {
+                        Text("Gagal memuat halaman berikutnya. Coba Lagi")
+                    }
+                }
+            }
+            else -> {}
         }
     }
 }
