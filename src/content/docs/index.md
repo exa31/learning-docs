@@ -85,10 +85,10 @@ import { Card, CardGrid } from '@astrojs/starlight/components';
 		<br/>
 		[Buka Catatan PostgreSQL &rarr;](/postgresql/01-sintaks-dasar-dan-tipe-data/)
 	</Card>
-	<Card title="🐬 MySQL (4 Modul)" icon="seti:db">
-		InnoDB vs MyISAM, Clustered Index & Covering Index, Locking & Isolation Levels, serta Replikasi Master-Replica dan Vitess Sharding.
+	<Card title="🐬 MySQL (10 Modul Lengkap)" icon="seti:db">
+		Sintaks & DDL/DML, InnoDB internals (Buffer Pool & WAL), Upsert & Recursive CTE, Indexing B+Tree & Covering Index, Deadlock analysis, Stored Procedures & Triggers, User privileges & Roles, my.cnf tuning, Backup PITR, serta Replikasi GTID & ProxySQL.
 		<br/>
-		[Buka Catatan MySQL &rarr;](/mysql/01-sintaks-dasar-dan-storage-engines/)
+		[Buka Catatan MySQL &rarr;](/mysql/01-sintaks-dasar-dan-tipe-data/)
 	</Card>
 	<Card title="🔴 Redis (5 Modul)" icon="seti:redis">
 		8 Struktur Data lengkap, Pola Caching & TTL Eviction, Pub/Sub & Streams persisten, Transaksi MULTI/EXEC & Scripting Lua, serta Sentinel & Cluster.

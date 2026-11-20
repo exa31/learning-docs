@@ -119,11 +119,17 @@ Perintah lain:
 4. `04. Transaksi & Concurrency Control` (ACID, 4 Tingkat Isolasi ANSI, MVCC snapshot, Explicit Row-Level Locking `FOR UPDATE`).
 5. `05. Analisis Performa & Administrasi` (`EXPLAIN ANALYZE`, Sequential vs Index Scan, autovacuum & bloat, `pg_stat_statements`, connection pooling PgBouncer).
 
-### 🐬 [MySQL (4 Modul)](file:///Users/macbookair/learning/src/content/docs/mysql/01-sintaks-dasar-dan-storage-engines.md)
-1. `01. Sintaks Dasar & Storage Engines` (InnoDB vs MyISAM vs Memory, DDL/DML, `DATETIME` vs `TIMESTAMP`, strict mode `sql_mode`).
-2. `02. Indexing & Optimasi Query` (Clustered Primary Key vs Secondary Index B+Tree, Covering Index, `EXPLAIN` format JSON, index antipatterns).
-3. `03. Transaksi & Locking Mechanisms` (ACID, 4 Isolation Levels, Repeatable Read default via MVCC Undo Log, Shared/Exclusive Locks, Deadlock prevention).
-4. `04. Replikasi & Sharding` (Binlog ROW vs STATEMENT, Asynchronous vs Semi-synchronous replication, GTID failover, horizontal sharding Vitess).
+### 🐬 [MySQL (10 Modul Lengkap)](file:///Users/macbookair/learning/src/content/docs/mysql/01-sintaks-dasar-dan-tipe-data.md)
+1. `01. Sintaks Dasar, DDL, DML & Tipe Data` (DDL, DML, perbandingan tipe data lengkap DECIMAL vs FLOAT, DATETIME vs TIMESTAMP, kolom JSON, Generated Columns).
+2. `02. Storage Engines & Arsitektur Internal InnoDB` (InnoDB vs MyISAM vs Memory, Buffer Pool LRU, Redo Log WAL, Undo Log MVCC, Doublewrite Buffer, Crash Recovery).
+3. `03. DML Lanjutan, Window Functions & CTE` (Upsert `ON DUPLICATE KEY UPDATE`, Recursive CTE hierarki breadcrumb, Window Functions `ROW_NUMBER`, `DENSE_RANK`, `LAG`, `LEAD`).
+4. `04. Indexing Mendalam & Optimasi Query` (Clustered vs Secondary B+Tree, Covering Index `Using index`, Leftmost Prefix Rule, FTS, Functional Index, `EXPLAIN ANALYZE`).
+5. `05. Transaksi, Locking & Analisis Deadlock` (ACID, 4 Tingkat Isolasi, Record/Gap/Next-Key Lock anti Phantom Read, deteksi deadlock `SHOW ENGINE INNODB STATUS`, pola pencegahan di kode).
+6. `06. Stored Procedures, Functions, Triggers & Views` (Stored Procedures dengan `DELIMITER //`, Handler SQLEXCEPTION, UDF Functions, Triggers Audit Trail Log `OLD`/`NEW`, Views `WITH CHECK OPTION`).
+7. `07. Manajemen User, Privileges & Keamanan` (Format `'user'@'host'`, Least Privilege matrix, Roles MySQL 8.0, enforce SSL/TLS, Zero-Downtime Password Rotation Dual Passwords).
+8. `08. Performance Tuning & Konfigurasi my.cnf` (Tuning Buffer Pool 70-80% RAM, `innodb_flush_log_at_trx_commit` 0/1/2, `O_DIRECT`, Slow Query Log & `mysqldumpslow`/`pt-query-digest`).
+9. `09. Backup, Restore & Point-in-Time Recovery (PITR)` (`mysqldump` standar produksi non-locking `--single-transaction`, multi-threaded `mydumper`, penyelamatan bencana via `mysqlbinlog`).
+10. `10. Replikasi, High Availability & ProxySQL` (Replikasi GTID format ROW, Asynchronous vs Semi-synchronous, split Read/Write otomatis via ProxySQL port 6033, Vitess Sharding).
 
 ### 🔴 [Redis (5 Modul)](file:///Users/macbookair/learning/src/content/docs/redis/01-data-structures-lengkap.md)
 1. `01. Struktur Data Lengkap & Perintah` (8 Struktur data: Strings, Hashes, Lists, Sets, Sorted Sets, Bitmaps, HyperLogLog, Streams).
@@ -162,7 +168,7 @@ learning/
 ├── package.json                           # Scripts (dev, build, preview) & dependencies
 ├── astro.config.mjs                       # Konfigurasi Astro Starlight & autogenerate sidebar
 │
-├── src/content/docs/                      # 📖 Sumber Markdown Dokumentasi (95 Modul)
+├── src/content/docs/                      # 📖 Sumber Markdown Dokumentasi (101 Modul)
 │   ├── index.md                           # Landing page portal
 │   ├── javascript/                        # 9 modul JS
 │   ├── typescript/                        # 5 modul TS
@@ -177,7 +183,7 @@ learning/
 │   ├── swiftui/                           # 5 modul SwiftUI (iOS & Apple UI)
 │   ├── terraform/                         # 1 modul Terraform (IaC)
 │   ├── postgresql/                        # 5 modul PostgreSQL
-│   ├── mysql/                             # 4 modul MySQL
+│   ├── mysql/                             # 10 modul MySQL (Lengkap)
 │   ├── redis/                             # 5 modul Redis
 │   ├── mongodb/                           # 4 modul MongoDB
 │   ├── bigquery/                          # 5 modul Google BigQuery
